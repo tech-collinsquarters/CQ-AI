@@ -49,3 +49,32 @@ export async function register(name: string, email: string, password: string) {
 
   return { authUser, user };
 }
+
+export async function login(email: string, password: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data.user || !data.session) {
+    throw new Error("Login succeeded but no session was returned");
+  }
+
+  return { user: data.user, session: data.session };
+}
+
+export async function logout() {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    throw error;
+  }
+}
+
