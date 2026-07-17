@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { CaseHeader } from "@/components/cases/case-header";
-import { EmptyCaseState } from "@/components/cases/empty-case-state";
+import { ChatLayout } from "@/components/chat/chat-layout";
+import { ConversationSkeleton } from "@/components/chat/conversation-skeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useCase } from "@/hooks/use-cases";
 import { cn } from "@/lib/utils";
 
@@ -19,13 +18,7 @@ export function CaseWorkspace({ caseId }: CaseWorkspaceProps) {
   const { data: caseRecord, isLoading, isError } = useCase(caseId);
 
   if (isLoading) {
-    return (
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 md:px-8">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-48 w-full rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </section>
-    );
+    return <ConversationSkeleton />;
   }
 
   if (isError || !caseRecord) {
@@ -50,21 +43,5 @@ export function CaseWorkspace({ caseId }: CaseWorkspaceProps) {
     );
   }
 
-  return (
-    <section className="mx-auto flex min-h-full w-full max-w-4xl flex-col px-4 py-8 md:px-8">
-      <Link
-        href="/dashboard"
-        className={cn(
-          buttonVariants({ variant: "ghost", size: "sm" }),
-          "mb-6 w-fit gap-2",
-        )}
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to dashboard
-      </Link>
-
-      <CaseHeader caseRecord={caseRecord} />
-      <EmptyCaseState />
-    </section>
-  );
+  return <ChatLayout caseRecord={caseRecord} />;
 }

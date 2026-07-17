@@ -128,3 +128,53 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .chat-prose {
+    @apply max-w-none text-sm leading-relaxed text-foreground;
+  }
+
+  .chat-prose :where(h1, h2, h3, h4) {
+    @apply mt-4 mb-2 font-semibold tracking-tight text-foreground first:mt-0;
+  }
+
+  .chat-prose :where(h2) {
+    @apply text-base;
+  }
+
+  .chat-prose :where(h3) {
+    @apply text-sm;
+  }
+
+  .chat-prose :where(p) {
+    @apply my-2 first:mt-0 last:mb-0;
+  }
+
+  .chat-prose :where(ul, ol) {
+    @apply my-2 ml-4 list-outside space-y-1;
+  }
+
+  .chat-prose :where(ul) {
+    @apply list-disc;
+  }
+
+  .chat-prose :where(ol) {
+    @apply list-decimal;
+  }
+
+  .chat-prose :where(li) {
+    @apply pl-1;
+  }
+
+  .chat-prose :where(strong) {
+    @apply font-semibold text-foreground;
+  }
+
+  .chat-prose :where(em) {
+    @apply italic;
+  }
+
+  .chat-prose :where(hr) {
+    @apply my-4 border-border;
+  }
+}
