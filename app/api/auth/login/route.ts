@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { login } from "@/services/authService";
+
+import {
+  createAuthRouteClient,
+  jsonWithAuthCookies,
+} from "@/lib/supabase/route-handler";
+import { loginWithClient } from "@/services/authService";
 import { loginSchema } from "@/validators/auth";
 
 export async function POST(request: Request) {
   try {
-    // 1. Parse JSON
     const body = await request.json();
-
-    // 2. Validate
     const parsed = loginSchema.safeParse(body);
+
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -19,12 +22,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Login
+    const { supabase, pendingCookies } = await createAuthRouteClient();
     const { email, password } = parsed.data;
-    const { user, session } = await login(email, password);
+    const { user, session } = await loginWithClient(supabase, email, password);
 
-    // 4. Success
-    return NextResponse.json({ user, session }, { status: 200 });
+    return jsonWithAuthCookies({ user, session }, pendingCookies, {
+      status: 200,
+    });
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -42,6 +46,16 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: "Invalid email or password" },
+        { status: 401 },
+      );
+    }
+
+    if (
+      err.code === "email_not_confirmed" ||
+      err.message?.toLowerCase().includes("email not confirmed")
+    ) {
+      return NextResponse.json(
+        { error: "Please confirm your email before signing in." },
         { status: 401 },
       );
     }

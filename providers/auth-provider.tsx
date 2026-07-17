@@ -63,7 +63,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: registerRequest,
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      if (result.requiresLogin || !result.session) {
+        toast.success(
+          result.message ??
+            "Account created. Please sign in to continue.",
+        );
+        router.push("/auth/login");
+        router.refresh();
+        return;
+      }
+
       await refreshUser();
       toast.success("Registered successfully");
       router.push("/dashboard");

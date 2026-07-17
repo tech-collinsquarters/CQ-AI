@@ -45,7 +45,16 @@ export async function loginRequest(input: LoginInput) {
   return data as { user: AppUser | null };
 }
 
-export async function registerRequest(input: RegisterInput) {
+export type RegisterResult = {
+  user: AppUser;
+  session?: unknown;
+  requiresLogin?: boolean;
+  message?: string;
+};
+
+export async function registerRequest(
+  input: RegisterInput,
+): Promise<RegisterResult> {
   const response = await fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,7 +70,7 @@ export async function registerRequest(input: RegisterInput) {
     );
   }
 
-  return data as { user: AppUser };
+  return data as RegisterResult;
 }
 
 export async function logoutRequest() {

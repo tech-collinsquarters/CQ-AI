@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { register } from "@/services/authService";
+
+import {
+  createAuthRouteClient,
+  jsonWithAuthCookies,
+} from "@/lib/supabase/route-handler";
+import { registerWithClient } from "@/services/authService";
 import { registerSchema } from "@/validators/auth";
 
 function isDuplicateEmailError(error: unknown): boolean {
@@ -33,11 +38,9 @@ function isDuplicateEmailError(error: unknown): boolean {
 
 export async function POST(request: Request) {
   try {
-    // 1. Parse JSON
     const body = await request.json();
-
-    // 2. Validate
     const parsed = registerSchema.safeParse(body);
+
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -48,12 +51,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Register
+    const { supabase, pendingCookies } = await createAuthRouteClient();
     const { fullName, email, password } = parsed.data;
-    const { user } = await register(fullName, email, password);
+    const { user, session } = await registerWithClient(
+      supabase,
+      fullName,
+      email,
+      password,
+    );
 
-    // 4. Success
-    return NextResponse.json({ user }, { status: 201 });
+    // No session (e.g. confirm-email still on) — account created, must sign in
+    if (!session) {
+      return NextResponse.json(
+        {
+          user,
+          session: null,
+          requiresLogin: true,
+          message:
+            "Account created. Please sign in to continue (check email confirmation if enabled).",
+        },
+        { status: 201 },
+      );
+    }
+
+    return jsonWithAuthCookies(
+      { user, session, requiresLogin: false },
+      pendingCookies,
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(
