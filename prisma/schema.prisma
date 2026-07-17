@@ -16,6 +16,37 @@ enum AuthProvider {
   GOOGLE
 }
 
+enum CaseStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CaseCategory {
+  FAMILY_LAW
+  PROPERTY_LAW
+  EMPLOYMENT_LAW
+  CORPORATE_LAW
+  COMMERCIAL_LAW
+  CRIMINAL_LAW
+  CIVIL_LAW
+  IMMIGRATION_LAW
+  CONSUMER_DISPUTE
+  OTHER
+}
+
+enum ImmigrationSubcategory {
+  STUDENT_VISA
+  WORK_VISA
+  PERMANENT_RESIDENCY
+  CITIZENSHIP
+  VISITOR_VISA
+  PARTNER_VISA
+  EMPLOYER_SPONSORSHIP
+  APPEAL
+  OTHER
+}
+
 model User {
   id           String       @id @db.Uuid
   fullName     String
@@ -24,28 +55,32 @@ model User {
   authProvider AuthProvider
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-  chats        Chat[]
+  cases        Case[]
 }
 
-enum ChatStatus {
-  ACTIVE
+model Case {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @db.Uuid
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  status    CaseStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  intake    CaseIntake?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("cases")
 }
 
-enum InitialCategory {
-  STUDENT_VISA
-  SKILLED_MIGRATION
-  PARTNER_VISA
-  SOMETHING_ELSE
-}
+model CaseIntake {
+  id          String                  @id @default(uuid()) @db.Uuid
+  caseId      String                  @unique @db.Uuid
+  case        Case                    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  category    CaseCategory
+  subcategory ImmigrationSubcategory?
+  description String
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
 
-model Chat {
-  id              String          @id @default(uuid()) @db.Uuid
-  userId          String          @db.Uuid
-  user            User            @relation(fields: [userId], references: [id])
-  source          String
-  status          ChatStatus      @default(ACTIVE)
-  initialCategory InitialCategory
-  createdAt       DateTime        @default(now())
-
-  @@index([userId])
+  @@map("case_intakes")
 }

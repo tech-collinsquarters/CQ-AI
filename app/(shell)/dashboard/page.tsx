@@ -1,5 +1,5 @@
-import { EmptyWorkspace } from "@/components/workspace/empty-workspace";
+import { DashboardWorkspace } from "@/components/workspace/dashboard-workspace";
 
 export default function DashboardPage() {
-  return <EmptyWorkspace />;
+  return <DashboardWorkspace />;
 }
