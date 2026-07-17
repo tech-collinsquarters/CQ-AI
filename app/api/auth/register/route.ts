@@ -49,8 +49,8 @@ export async function POST(request: Request) {
     }
 
     // 3. Register
-    const { name, email, password } = parsed.data;
-    const { user } = await register(name, email, password);
+    const { fullName, email, password } = parsed.data;
+    const { user } = await register(fullName, email, password);
 
     // 4. Success
     return NextResponse.json({ user }, { status: 201 });

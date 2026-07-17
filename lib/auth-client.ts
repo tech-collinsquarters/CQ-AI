@@ -1,0 +1,80 @@
+import type { AppUser } from "@/types/auth";
+import type { LoginInput, RegisterInput } from "@/validators/auth";
+
+async function parseJson(response: Response) {
+  return response.json().catch(() => ({}));
+}
+
+export async function fetchCurrentUser(): Promise<AppUser | null> {
+  const response = await fetch("/api/auth/me", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to fetch user",
+    );
+  }
+
+  return data.user as AppUser;
+}
+
+export async function loginRequest(input: LoginInput) {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to log in",
+    );
+  }
+
+  return data as { user: AppUser | null };
+}
+
+export async function registerRequest(input: RegisterInput) {
+  const response = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to register",
+    );
+  }
+
+  return data as { user: AppUser };
+}
+
+export async function logoutRequest() {
+  const response = await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to log out",
+    );
+  }
+}

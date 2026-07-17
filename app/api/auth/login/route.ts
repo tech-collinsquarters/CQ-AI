@@ -26,7 +26,6 @@ export async function POST(request: Request) {
     // 4. Success
     return NextResponse.json({ user, session }, { status: 200 });
   } catch (error) {
-    console.log(error)
     if (error instanceof SyntaxError) {
       return NextResponse.json(
         { error: "Invalid JSON body" },

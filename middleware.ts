@@ -1,18 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
 
 function isPublicPath(pathname: string) {
-  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+  if (
+    PUBLIC_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`),
+    )
+  ) {
     return true;
   }
 
-  if (pathname.startsWith("/api/auth/")) {
-    return true;
-  }
-
-  return false;
+  return pathname.startsWith("/api/auth/");
 }
 
 export async function middleware(request: NextRequest) {
@@ -21,9 +21,21 @@ export async function middleware(request: NextRequest) {
 
   if (!user && !isPublicPath(pathname)) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
+    loginUrl.pathname = "/auth/login";
     loginUrl.search = "";
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (
+    user &&
+    (pathname === "/auth/login" ||
+      pathname === "/auth/register" ||
+      pathname === "/")
+  ) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.search = "";
+    return NextResponse.redirect(dashboardUrl);
   }
 
   return supabaseResponse;
@@ -31,9 +43,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except static assets and image optimization.
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
