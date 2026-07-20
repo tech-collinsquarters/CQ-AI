@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Settings, User } from "lucide-react";
+import { User } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -57,15 +57,6 @@ export function SidebarFooter({ collapsed = false }: SidebarFooterProps) {
     !collapsed && "h-auto justify-start gap-2 py-2",
   );
 
-  const settingsClass = cn(
-    buttonVariants({
-      variant: "ghost",
-      size: collapsed ? "icon" : "default",
-    }),
-    "w-full",
-    !collapsed && "justify-start gap-2",
-  );
-
   return (
     <div className="border-t border-sidebar-border p-3">
       <div className="space-y-1">
@@ -115,40 +106,6 @@ export function SidebarFooter({ collapsed = false }: SidebarFooterProps) {
                 {user?.email}
               </span>
             </span>
-          </Link>
-        )}
-
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Link
-                  href="/settings"
-                  className={settingsClass}
-                  aria-label="Open settings"
-                  onClick={() => {
-                    setSelectedMenu("settings");
-                    setMobileNavOpen(false);
-                  }}
-                />
-              }
-            >
-              <Settings className="size-4" aria-hidden />
-            </TooltipTrigger>
-            <TooltipContent side="right">Settings</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Link
-            href="/settings"
-            className={settingsClass}
-            aria-label="Open settings"
-            onClick={() => {
-              setSelectedMenu("settings");
-              setMobileNavOpen(false);
-            }}
-          >
-            <Settings className="size-4" aria-hidden />
-            Settings
           </Link>
         )}
       </div>

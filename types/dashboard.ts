@@ -4,7 +4,9 @@ export type DashboardMenuId =
   | "search"
   | "history"
   | "settings"
-  | "profile";
+  | "profile"
+  | "admin"
+  | "contact";
 
 export type DashboardShellState = {
   sidebarCollapsed: boolean;

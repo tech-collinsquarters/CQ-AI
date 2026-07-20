@@ -12,6 +12,8 @@ type CaseCardProps = {
   caseItem: CaseListItem;
   active?: boolean;
   compact?: boolean;
+  /** "sidebar" renders on the permanently-dark sidebar chrome, not the page background */
+  variant?: "default" | "sidebar";
   onNavigate?: () => void;
 };
 
@@ -19,8 +21,11 @@ export function CaseCard({
   caseItem,
   active = false,
   compact = false,
+  variant = "default",
   onNavigate,
 }: CaseCardProps) {
+  const onSidebar = variant === "sidebar";
+
   return (
     <Link
       href={`/cases/${caseItem.id}`}
@@ -38,7 +43,8 @@ export function CaseCard({
       <div className="flex items-start justify-between gap-2">
         <p
           className={cn(
-            "line-clamp-2 text-sm font-medium text-foreground",
+            "line-clamp-2 text-sm font-medium",
+            onSidebar ? "text-sidebar-foreground" : "text-foreground",
             compact && "text-[0.8rem]",
           )}
         >
@@ -46,7 +52,12 @@ export function CaseCard({
         </p>
         <CaseStatusBadge status={caseItem.status} className="shrink-0" />
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p
+        className={cn(
+          "mt-1 text-xs",
+          onSidebar ? "text-sidebar-foreground/60" : "text-muted-foreground",
+        )}
+      >
         {formatCaseDate(caseItem.createdAt)}
       </p>
     </Link>
@@ -57,6 +68,7 @@ type CaseListProps = {
   cases: CaseListItem[];
   activeCaseId?: string;
   compact?: boolean;
+  variant?: "default" | "sidebar";
   onNavigate?: () => void;
   className?: string;
 };
@@ -65,6 +77,7 @@ export function CaseList({
   cases,
   activeCaseId,
   compact = false,
+  variant = "default",
   onNavigate,
   className,
 }: CaseListProps) {
@@ -83,6 +96,7 @@ export function CaseList({
           caseItem={caseItem}
           active={caseItem.id === resolvedActiveId}
           compact={compact}
+          variant={variant}
           onNavigate={onNavigate}
         />
       ))}

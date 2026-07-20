@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -63,13 +63,6 @@ export function UserDropdown() {
         >
           <User className="size-4" aria-hidden />
           Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          render={<Link href="/settings" />}
-          className="cursor-pointer gap-2"
-        >
-          <Settings className="size-4" aria-hidden />
-          Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

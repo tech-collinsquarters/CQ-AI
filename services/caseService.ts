@@ -24,6 +24,8 @@ function toCaseDto(caseRecord: CaseWithIntake): CaseDto {
     userId: caseRecord.userId,
     title: caseRecord.title,
     status: caseRecord.status,
+    summary: caseRecord.summary,
+    summaryUpdatedAt: caseRecord.summaryUpdatedAt?.toISOString() ?? null,
     createdAt: caseRecord.createdAt.toISOString(),
     updatedAt: caseRecord.updatedAt.toISOString(),
     intake: caseRecord.intake ? toCaseIntakeDto(caseRecord.intake) : null,

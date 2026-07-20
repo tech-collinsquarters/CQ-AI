@@ -6,7 +6,14 @@ import { getPrisma } from "@/lib/prisma";
 
 export type AppUser = Pick<
   User,
-  "id" | "fullName" | "email" | "role" | "authProvider" | "createdAt" | "updatedAt"
+  | "id"
+  | "fullName"
+  | "email"
+  | "role"
+  | "plan"
+  | "authProvider"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 function toAppUser(user: User): AppUser {
@@ -15,10 +22,24 @@ function toAppUser(user: User): AppUser {
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    plan: user.plan,
     authProvider: user.authProvider,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+}
+
+/** Only touch lastActiveAt when it's missing or stale, to avoid a write per request. */
+const ACTIVITY_TOUCH_INTERVAL_MS = 10 * 60 * 1000;
+
+function touchLastActive(userId: string, lastActiveAt: Date | null): void {
+  if (lastActiveAt && Date.now() - lastActiveAt.getTime() < ACTIVITY_TOUCH_INTERVAL_MS) {
+    return;
+  }
+  // Fire-and-forget: activity tracking must never slow down or fail a request.
+  getPrisma()
+    .user.update({ where: { id: userId }, data: { lastActiveAt: new Date() } })
+    .catch((error) => console.error("touchLastActive failed:", error));
 }
 
 /**
@@ -62,6 +83,8 @@ export async function syncPrismaUser(
       ...(overrides?.authProvider ? { authProvider: overrides.authProvider } : {}),
     },
   });
+
+  touchLastActive(user.id, user.lastActiveAt);
 
   return toAppUser(user);
 }
@@ -156,6 +179,12 @@ export async function login(email: string, password: string) {
 export async function logout() {
   const supabase = await createClient();
   await logoutWithClient(supabase);
+}
+
+/** Returns the current user only if they hold the ADMIN role. */
+export async function getCurrentAdmin(): Promise<AppUser | null> {
+  const user = await getCurrentUser();
+  return user?.role === Role.ADMIN ? user : null;
 }
 
 export async function getCurrentUser(): Promise<AppUser | null> {

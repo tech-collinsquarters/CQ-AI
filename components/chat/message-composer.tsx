@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArrowUp } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowUp, ImagePlus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,9 +14,11 @@ import {
 } from "@/components/ui/tooltip";
 import { CHAT_COMPOSER_PLACEHOLDER } from "@/constants/chat-prompts";
 import { useChatInput } from "@/hooks/use-chat-input";
+import { uploadCaseFile } from "@/lib/case-files-client";
 import { cn } from "@/lib/utils";
 
 type MessageComposerProps = {
+  caseId: string;
   onSend: (content: string) => void;
   disabled?: boolean;
   draft?: string;
@@ -23,6 +27,7 @@ type MessageComposerProps = {
 };
 
 export function MessageComposer({
+  caseId,
   onSend,
   disabled = false,
   draft,
@@ -30,6 +35,19 @@ export function MessageComposer({
   className,
 }: MessageComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const uploadImageMutation = useMutation({
+    mutationFn: (file: File) => uploadCaseFile(caseId, file),
+    onSuccess: (file) => {
+      queryClient.invalidateQueries({ queryKey: ["case-files", caseId] });
+      toast.success(
+        `${file.fileName} added to case files — the assistant can see it on this and future messages.`,
+      );
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const {
     value,
@@ -79,6 +97,45 @@ export function MessageComposer({
             aria-label="Message input"
             className="max-h-[200px] min-h-10 flex-1 resize-none border-0 bg-transparent px-2 py-2 shadow-none focus-visible:ring-0"
           />
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            className="hidden"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) {
+                uploadImageMutation.mutate(file);
+              }
+            }}
+          />
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-9 shrink-0 rounded-xl"
+                  disabled={disabled || uploadImageMutation.isPending}
+                  onClick={() => imageInputRef.current?.click()}
+                  aria-label="Attach an image"
+                />
+              }
+            >
+              {uploadImageMutation.isPending ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <ImagePlus className="size-4" aria-hidden />
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              Attach an image — added as case context, visible to the assistant on every message
+            </TooltipContent>
+          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger

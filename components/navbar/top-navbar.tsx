@@ -1,11 +1,10 @@
 "use client";
 
-import { Bell, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
-import Link from "next/link";
+import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { ResponsiveDrawer } from "@/components/sidebar/responsive-drawer";
 import { UserDropdown } from "@/components/navbar/user-dropdown";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -14,7 +13,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
-import { cn } from "@/lib/utils";
 
 export function TopNavbar() {
   const { user, loading } = useAuth();
@@ -41,8 +39,8 @@ export function TopNavbar() {
         </Button>
 
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold tracking-tight">
-            Legal Assistant
+          <p className="truncate font-heading text-sm font-semibold tracking-tight">
+            Collins Quarters
           </p>
           {loading && !user ? (
             <Skeleton className="mt-1 h-3 w-28" />
@@ -69,21 +67,6 @@ export function TopNavbar() {
             <Bell className="size-4" aria-hidden />
           </TooltipTrigger>
           <TooltipContent>Notifications coming soon</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Link
-                href="/settings"
-                className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
-                aria-label="Settings"
-              />
-            }
-          >
-            <Settings className="size-4" aria-hidden />
-          </TooltipTrigger>
-          <TooltipContent>Settings</TooltipContent>
         </Tooltip>
 
         <UserDropdown />

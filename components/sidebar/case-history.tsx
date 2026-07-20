@@ -55,8 +55,10 @@ export function CaseHistory({ collapsed = false }: CaseHistoryProps) {
               "flex flex-col items-center justify-center gap-2 px-4 py-10 text-center",
             )}
           >
-            <p className="text-sm font-medium text-foreground">No cases yet.</p>
-            <p className="max-w-[14rem] text-xs text-muted-foreground">
+            <p className="text-sm font-medium text-sidebar-foreground">
+              No cases yet.
+            </p>
+            <p className="max-w-[14rem] text-xs text-sidebar-foreground/60">
               Create your first case to start organizing legal work.
             </p>
           </div>
@@ -65,6 +67,7 @@ export function CaseHistory({ collapsed = false }: CaseHistoryProps) {
             <CaseList
               cases={cases}
               compact
+              variant="sidebar"
               onNavigate={() => setMobileNavOpen(false)}
             />
           </div>

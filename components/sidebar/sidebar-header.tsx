@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Scale } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
@@ -29,14 +29,25 @@ export function SidebarHeader({ collapsed = false }: SidebarHeaderProps) {
           setMobileNavOpen(false);
         }}
       >
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Scale className="size-4" aria-hidden />
-        </span>
-        {!collapsed ? (
-          <span className="text-sm font-semibold tracking-tight">
-            Legal Assistant
-          </span>
-        ) : null}
+        {collapsed ? (
+          <Image
+            src="/logo-mark.png"
+            alt="Collins Quarters"
+            width={256}
+            height={256}
+            priority
+            className="size-8"
+          />
+        ) : (
+          <Image
+            src="/logo.png"
+            alt="Collins Quarters"
+            width={1500}
+            height={376}
+            priority
+            className="h-7 w-auto"
+          />
+        )}
       </Link>
     </div>
   );

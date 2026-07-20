@@ -11,6 +11,22 @@ enum Role {
   ADMIN
 }
 
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+enum CaseFileKind {
+  IMAGE
+  DOCUMENT
+}
+
 enum AuthProvider {
   EMAIL
   GOOGLE
@@ -52,21 +68,28 @@ model User {
   fullName     String
   email        String       @unique
   role         Role         @default(USER)
+  plan         Plan         @default(FREE)
   authProvider AuthProvider
+  lastActiveAt DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   cases        Case[]
+  usage        DailyUsage[]
 }
 
 model Case {
-  id        String     @id @default(uuid()) @db.Uuid
-  userId    String     @db.Uuid
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  status    CaseStatus @default(ACTIVE)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  intake    CaseIntake?
+  id               String       @id @default(uuid()) @db.Uuid
+  userId           String       @db.Uuid
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  status           CaseStatus   @default(ACTIVE)
+  summary          String?
+  summaryUpdatedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  intake           CaseIntake?
+  messages         ChatMessage[]
+  files            CaseFile[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("cases")
@@ -83,4 +106,51 @@ model CaseIntake {
   updatedAt   DateTime                @updatedAt
 
   @@map("case_intakes")
+}
+
+model ChatMessage {
+  id           String   @id @default(uuid()) @db.Uuid
+  caseId       String   @db.Uuid
+  case         Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  role         ChatRole
+  content      String
+  inputTokens  Int?
+  outputTokens Int?
+  createdAt    DateTime @default(now())
+
+  @@index([caseId, createdAt])
+  @@map("chat_messages")
+}
+
+/**
+ * Case-level knowledge file (image or document) — uploaded once, used as
+ * context for every assistant turn on the case, not attached per-message.
+ */
+model CaseFile {
+  id          String       @id @default(uuid()) @db.Uuid
+  caseId      String       @db.Uuid
+  case        Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  uploadedBy  String       @db.Uuid
+  fileName    String
+  mimeType    String
+  sizeBytes   Int
+  storagePath String
+  kind        CaseFileKind
+  createdAt   DateTime     @default(now())
+
+  @@index([caseId, createdAt])
+  @@map("case_files")
+}
+
+model DailyUsage {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day          DateTime @db.Date
+  messageCount Int      @default(0)
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+
+  @@unique([userId, day])
+  @@map("daily_usage")
 }

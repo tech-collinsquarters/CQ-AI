@@ -1,14 +1,26 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { getDummyAssistantReply } from "@/lib/chat-dummy";
-import type { CaseChatContext, ChatMessage } from "@/types/chat";
+import { fetchCaseMessages, streamChatMessage } from "@/lib/chat-client";
+import type {
+  CaseChatContext,
+  ChatMessage,
+  ChatMessageDto,
+  ChatQuota,
+} from "@/types/chat";
 
-const TYPING_DELAY_MS = 900;
-const REPLY_DELAY_MS = 600;
+function toUiMessage(dto: ChatMessageDto): ChatMessage {
+  return {
+    id: dto.id,
+    role: dto.role,
+    content: dto.content,
+    status: "sent",
+    createdAt: dto.createdAt,
+  };
+}
 
-function createMessage(
+function createLocalMessage(
   role: ChatMessage["role"],
   content: string,
   status: ChatMessage["status"] = "sent",
@@ -27,50 +39,138 @@ type UseChatMessagesOptions = {
 };
 
 /**
- * Local message state. Future: replace internals with useCaseChat(caseId)
- * calling POST /api/cases/:id/chat and streaming tokens into messages.
+ * Loads persisted history for the case and streams assistant replies from
+ * POST /api/cases/:id/chat (Claude on Amazon Bedrock).
  */
 export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
+  const caseId = caseContext?.caseId;
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(Boolean(caseId));
   const [isTyping, setIsTyping] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
+  const [quota, setQuota] = useState<ChatQuota | null>(null);
+
+  useEffect(() => {
+    if (!caseId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchCaseMessages(caseId)
+      .then(({ messages: history, quota: currentQuota }) => {
+        if (cancelled) {
+          return;
+        }
+        setMessages(history.map(toUiMessage));
+        setQuota(currentQuota);
+      })
+      .catch((error: Error) => {
+        console.error("Failed to load chat history:", error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingHistory(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [caseId]);
 
   const sendMessage = useCallback(
     async (content: string) => {
       const trimmed = content.trim();
-      if (!trimmed) {
+      if (!trimmed || !caseId) {
         return;
       }
 
-      const userMessage = createMessage("user", trimmed);
-      setMessages((prev) => [...prev, userMessage]);
-      setIsTyping(true);
+      const optimisticUser = createLocalMessage("user", trimmed);
+      const streamingId = crypto.randomUUID();
+      let assistantStarted = false;
 
-      await new Promise((resolve) => setTimeout(resolve, TYPING_DELAY_MS));
+      setMessages((prev) => [...prev, optimisticUser]);
+      setIsTyping(true);
+      setIsBusy(true);
+
+      const appendAssistantError = (message: string) => {
+        const errorMessage = createLocalMessage("assistant", message, "error");
+        errorMessage.errorMessage = message;
+        setMessages((prev) => [
+          ...prev.filter((m) => m.id !== streamingId),
+          errorMessage,
+        ]);
+      };
 
       try {
-        const replyContent = getDummyAssistantReply(trimmed, caseContext);
-        await new Promise((resolve) => setTimeout(resolve, REPLY_DELAY_MS));
-
-        const assistantMessage = createMessage("assistant", replyContent);
-        setMessages((prev) => [...prev, assistantMessage]);
-      } catch {
-        const errorMessage = createMessage(
-          "assistant",
-          "Something went wrong while generating a response. Please try again.",
-          "error",
+        await streamChatMessage(caseId, trimmed, (event) => {
+          switch (event.type) {
+            case "user_message":
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === optimisticUser.id ? toUiMessage(event.message) : m,
+                ),
+              );
+              break;
+            case "delta":
+              if (!assistantStarted) {
+                assistantStarted = true;
+                setIsTyping(false);
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: streamingId,
+                    role: "assistant",
+                    content: event.text,
+                    status: "streaming",
+                    createdAt: new Date().toISOString(),
+                  },
+                ]);
+              } else {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId
+                      ? { ...m, content: m.content + event.text }
+                      : m,
+                  ),
+                );
+              }
+              break;
+            case "done":
+              setQuota(event.quota);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === streamingId ? toUiMessage(event.message) : m,
+                ),
+              );
+              break;
+            case "error":
+              appendAssistantError(event.error);
+              break;
+          }
+        });
+      } catch (error) {
+        appendAssistantError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while generating a response. Please try again.",
         );
-        errorMessage.errorMessage = "Failed to generate preview response";
-        setMessages((prev) => [...prev, errorMessage]);
       } finally {
         setIsTyping(false);
+        setIsBusy(false);
       }
     },
-    [caseContext],
+    [caseId],
   );
 
   return {
     messages,
     isTyping,
+    isBusy,
+    isLoadingHistory,
+    quota,
     sendMessage,
     hasMessages: messages.length > 0,
   };

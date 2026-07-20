@@ -36,6 +36,28 @@ export type SendMessageInput = {
   content: string;
 };
 
+/** Server-persisted chat message as returned by the API */
+export type ChatMessageDto = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+};
+
+/** Daily message allowance for the current user's plan */
+export type ChatQuota = {
+  limit: number;
+  used: number;
+  remaining: number;
+};
+
+/** Events emitted over SSE by POST /api/cases/[id]/chat */
+export type ChatStreamEvent =
+  | { type: "user_message"; message: ChatMessageDto }
+  | { type: "delta"; text: string }
+  | { type: "done"; message: ChatMessageDto; quota: ChatQuota }
+  | { type: "error"; error: string };
+
 /** Props passed to future AI layer — case context for system prompt */
 export type CaseChatContext = {
   caseId: string;
