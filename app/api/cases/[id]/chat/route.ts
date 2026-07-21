@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/services/authService";
 import { getCaseForUser } from "@/services/caseService";
 import {
   getChatQuota,
+  reserveChatMessage,
   streamAssistantReply,
   type ChatStreamEvent,
 } from "@/services/chatService";
@@ -15,6 +16,8 @@ type RouteContext = {
 };
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 function toSseChunk(event: ChatStreamEvent): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`);
@@ -45,15 +48,19 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Case not found" }, { status: 404 });
     }
 
-    const quota = await getChatQuota(user);
-    if (quota.remaining <= 0) {
+    const reservedQuota = await reserveChatMessage(user);
+    if (!reservedQuota) {
+      const quota = await getChatQuota(user);
       return NextResponse.json(
         {
           error:
             `You have reached today's message limit for your plan. Upgrade your plan, try again tomorrow, or visit ${FIRM_WEBSITE_URL} to speak with our team.`,
           quota,
         },
-        { status: 429 },
+        {
+          status: 429,
+          headers: { "Retry-After": "3600" },
+        },
       );
     }
 
@@ -61,6 +68,7 @@ export async function POST(request: Request, context: RouteContext) {
       user,
       caseRecord,
       content: parsed.data.content,
+      signal: request.signal,
     });
 
     const stream = new ReadableStream<Uint8Array>({
@@ -82,6 +90,7 @@ export async function POST(request: Request, context: RouteContext) {
         "Content-Type": "text/event-stream; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (error) {

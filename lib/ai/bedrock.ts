@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   BedrockRuntimeClient,
   ConverseCommand,
@@ -45,12 +47,16 @@ export function getBedrockClient(): BedrockRuntimeClient {
 
 type ConverseStreamOptions = Omit<ConverseStreamCommandInput, "modelId">;
 
-export function converseStream(options: ConverseStreamOptions) {
+export function converseStream(
+  options: ConverseStreamOptions,
+  abortSignal?: AbortSignal,
+) {
   return getBedrockClient().send(
     new ConverseStreamCommand({
       ...options,
       modelId: getBedrockModel(),
     }),
+    { abortSignal },
   );
 }
 

@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { sanitizeMarkdownHref } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 
 type MarkdownContentProps = {
@@ -16,16 +17,22 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary underline underline-offset-2"
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => {
+            const safeHref = sanitizeMarkdownHref(href);
+            if (!safeHref) {
+              return <span className="font-medium text-primary">{children}</span>;
+            }
+            return (
+              <a
+                href={safeHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline underline-offset-2"
+              >
+                {children}
+              </a>
+            );
+          },
           pre: ({ children }) => (
             <pre className="overflow-x-auto rounded-lg border border-border bg-muted/60 p-3 text-sm">
               {children}

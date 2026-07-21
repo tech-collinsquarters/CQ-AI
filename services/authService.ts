@@ -189,22 +189,35 @@ export async function getCurrentAdmin(): Promise<AppUser | null> {
 
 export async function getCurrentUser(): Promise<AppUser | null> {
   const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+
+  if (error || typeof userId !== "string") {
+    return null;
+  }
+
+  // The app profile is authoritative for role and plan. Most requests only
+  // need verified JWT claims plus this single indexed read.
+  const user = await getPrisma().user.findUnique({ where: { id: userId } });
+  if (user) {
+    touchLastActive(user.id, user.lastActiveAt);
+    return toAppUser(user);
+  }
+
+  // Safety net for an Auth user whose app profile was not created (for
+  // example, an interrupted registration). Fetch fresh Auth data only on this
+  // exceptional path, rather than making a remote Auth call every request.
   const {
     data: { user: authUser },
   } = await supabase.auth.getUser();
-
   if (!authUser) {
     return null;
   }
 
-  // Safety net: sync Prisma if Auth exists but app user row is missing
   try {
     return await syncPrismaUser(authUser);
-  } catch (error) {
-    console.error("getCurrentUser sync failed:", error);
-    const user = await getPrisma().user.findUnique({
-      where: { id: authUser.id },
-    });
-    return user ? toAppUser(user) : null;
+  } catch (syncError) {
+    console.error("getCurrentUser sync failed:", syncError);
+    return null;
   }
 }

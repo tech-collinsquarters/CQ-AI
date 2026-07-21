@@ -65,7 +65,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           user,
-          session: null,
           requiresLogin: true,
           message:
             "Account created. Please sign in to continue (check email confirmation if enabled).",
@@ -74,11 +73,9 @@ export async function POST(request: Request) {
       );
     }
 
-    return jsonWithAuthCookies(
-      { user, session, requiresLogin: false },
-      pendingCookies,
-      { status: 201 },
-    );
+    return jsonWithAuthCookies({ user, requiresLogin: false }, pendingCookies, {
+      status: 201,
+    });
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(

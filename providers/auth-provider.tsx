@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: registerRequest,
     onSuccess: async (result) => {
-      if (result.requiresLogin || !result.session) {
+      if (result.requiresLogin) {
         toast.success(
           result.message ??
             "Account created. Please sign in to continue.",

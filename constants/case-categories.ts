@@ -10,7 +10,6 @@ import {
   Landmark,
   Scale,
   ShoppingBag,
-  Users,
 } from "lucide-react";
 
 import type { CaseCategory, ImmigrationSubcategory } from "@prisma/client";

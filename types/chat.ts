@@ -56,7 +56,7 @@ export type ChatStreamEvent =
   | { type: "user_message"; message: ChatMessageDto }
   | { type: "delta"; text: string }
   | { type: "done"; message: ChatMessageDto; quota: ChatQuota }
-  | { type: "error"; error: string };
+  | { type: "error"; error: string; quota?: ChatQuota }
 
 /** Props passed to future AI layer — case context for system prompt */
 export type CaseChatContext = {

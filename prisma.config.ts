@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { defineConfig, env } from "prisma/config";
 
 // Next.js keeps secrets in .env.local; Prisma CLI does not load it by default.
-config({ path: ".env" });
+config({ path: ".env.prod" });
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

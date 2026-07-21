@@ -47,7 +47,6 @@ export async function loginRequest(input: LoginInput) {
 
 export type RegisterResult = {
   user: AppUser;
-  session?: unknown;
   requiresLogin?: boolean;
   message?: string;
 };
