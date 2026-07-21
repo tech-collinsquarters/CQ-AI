@@ -1,7 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
 
 function isPublicPath(pathname: string) {
   if (
@@ -20,16 +25,23 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
+    // APIs must return JSON 401 — never an HTML login redirect.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
     loginUrl.search = "";
     return NextResponse.redirect(loginUrl);
   }
 
+  // Do not redirect away from reset-password — recovery sessions need that page.
   if (
     user &&
     (pathname === "/auth/login" ||
       pathname === "/auth/register" ||
+      pathname === "/auth/forgot-password" ||
       pathname === "/")
   ) {
     const dashboardUrl = request.nextUrl.clone();

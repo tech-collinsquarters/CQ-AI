@@ -1,5 +1,10 @@
 import type { AppUser } from "@/types/auth";
-import type { LoginInput, RegisterInput } from "@/validators/auth";
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "@/validators/auth";
 
 async function parseJson(response: Response) {
   return response.json().catch(() => ({}));
@@ -47,7 +52,6 @@ export async function loginRequest(input: LoginInput) {
 
 export type RegisterResult = {
   user: AppUser;
-  session?: unknown;
   requiresLogin?: boolean;
   message?: string;
 };
@@ -71,6 +75,46 @@ export async function registerRequest(
   }
 
   return data as RegisterResult;
+}
+
+export async function forgotPasswordRequest(input: ForgotPasswordInput) {
+  const response = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "Unable to request password reset",
+    );
+  }
+
+  return data as { message: string };
+}
+
+export async function resetPasswordRequest(input: ResetPasswordInput) {
+  const response = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const data = await parseJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : "Unable to reset password",
+    );
+  }
+
+  return data as { success: boolean };
 }
 
 export async function logoutRequest() {

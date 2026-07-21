@@ -65,7 +65,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           user,
-          session: null,
           requiresLogin: true,
           message:
             "Account created. Please sign in to continue (check email confirmation if enabled).",
@@ -74,8 +73,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Session tokens stay in HttpOnly cookies only — never in the JSON body.
     return jsonWithAuthCookies(
-      { user, session, requiresLogin: false },
+      { user, requiresLogin: false },
       pendingCookies,
       { status: 201 },
     );

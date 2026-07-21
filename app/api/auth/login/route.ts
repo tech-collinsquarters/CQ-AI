@@ -24,9 +24,10 @@ export async function POST(request: Request) {
 
     const { supabase, pendingCookies } = await createAuthRouteClient();
     const { email, password } = parsed.data;
-    const { user, session } = await loginWithClient(supabase, email, password);
+    const { user } = await loginWithClient(supabase, email, password);
 
-    return jsonWithAuthCookies({ user, session }, pendingCookies, {
+    // Session tokens stay in HttpOnly cookies only — never in the JSON body.
+    return jsonWithAuthCookies({ user }, pendingCookies, {
       status: 200,
     });
   } catch (error) {
