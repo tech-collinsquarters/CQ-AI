@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -58,21 +57,14 @@ export function UserDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          render={<Link href="/profile" />}
-          className="cursor-pointer gap-2"
-        >
-          <User className="size-4" aria-hidden />
-          Profile
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
           className="cursor-pointer gap-2 text-destructive"
+          disabled={loading}
           onClick={() => {
             void logout();
           }}
         >
           <LogOut className="size-4" aria-hidden />
-          Log out
+          {loading ? "Signing out…" : "Log out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
