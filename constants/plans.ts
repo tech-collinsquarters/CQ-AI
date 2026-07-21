@@ -18,14 +18,14 @@ export type PlanConfig = {
 const MB = 1024 * 1024;
 
 export const PLAN_CONFIG: Record<Plan, PlanConfig> = {
-  [Plan.FREE]: {
+  FREE: {
     label: "Free",
     dailyMessageLimit: 2,
     description: "Getting started — limited daily AI messages",
     maxCaseFiles: 3,
     maxCaseFilesTotalBytes: 8 * MB,
   },
-  [Plan.PRO]: {
+  PRO: {
     label: "Pro",
     dailyMessageLimit: 20,
     description: "For active matters — high daily AI message allowance",
@@ -33,7 +33,7 @@ export const PLAN_CONFIG: Record<Plan, PlanConfig> = {
     maxCaseFiles: 5,
     maxCaseFilesTotalBytes: 18 * MB,
   },
-  [Plan.ENTERPRISE]: {
+  ENTERPRISE: {
     label: "Enterprise",
     dailyMessageLimit: 100,
     description: "Firm-wide usage with priority support",
@@ -44,7 +44,7 @@ export const PLAN_CONFIG: Record<Plan, PlanConfig> = {
   },
 };
 
-export const PLAN_ORDER: Plan[] = [Plan.FREE, Plan.PRO, Plan.ENTERPRISE];
+export const PLAN_ORDER: Plan[] = ["FREE", "PRO", "ENTERPRISE"];
 
 export function getPlanConfig(plan: Plan): PlanConfig {
   return PLAN_CONFIG[plan];
