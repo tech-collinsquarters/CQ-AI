@@ -192,4 +192,47 @@
   .chat-prose :where(hr) {
     @apply my-4 border-border;
   }
+
+  .chat-message-streaming {
+    @apply border-primary/20;
+  }
+
+  .chat-streaming-cursor {
+    @apply h-4 w-0.5 align-middle bg-primary;
+    animation: chat-cursor-blink 1s step-end infinite;
+  }
+
+  .chat-typing-dot {
+    animation: chat-typing-bounce 1.2s ease-in-out infinite;
+  }
+
+  @keyframes chat-cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes chat-typing-bounce {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.45;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chat-streaming-cursor,
+    .chat-typing-dot {
+      animation: none;
+    }
+  }
 }
