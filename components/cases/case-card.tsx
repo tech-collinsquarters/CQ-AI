@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { CaseStatusBadge } from "@/components/cases/case-status-badge";
+import { sidebarCaseItemClassName } from "@/components/sidebar/sidebar-nav-styles";
 import { formatCaseDate } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 import type { CaseListItem } from "@/types/case";
@@ -31,12 +32,17 @@ export function CaseCard({
       href={`/cases/${caseItem.id}`}
       onClick={onNavigate}
       className={cn(
-        "block rounded-lg border px-3 py-2.5 transition-all duration-200",
-        "hover:border-primary/30 hover:bg-sidebar-accent/50",
-        active
-          ? "border-primary/50 bg-primary/5 shadow-sm"
-          : "border-transparent bg-transparent",
-        compact && "px-2 py-2",
+        onSidebar
+          ? sidebarCaseItemClassName({ isActive: active })
+          : cn(
+              "block rounded-lg border px-3 py-2.5 transition-all duration-200",
+              "hover:border-primary/30 hover:bg-muted/40",
+              active
+                ? "border-primary/50 bg-primary/5 shadow-sm"
+                : "border-transparent bg-transparent",
+            ),
+        !onSidebar && compact && "px-2 py-2",
+        onSidebar && compact && "px-2 py-2",
       )}
       aria-current={active ? "page" : undefined}
     >

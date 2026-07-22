@@ -23,14 +23,19 @@ export function NewCaseButton({ collapsed = false }: NewCaseButtonProps) {
   const { setSelectedMenu, setMobileNavOpen } = useDashboardShell();
   const isActive = isMenuItemActive("new-case", pathname);
 
+  const className = cn(
+    buttonVariants({ variant: "default", size: collapsed ? "icon" : "default" }),
+    "w-full",
+    !collapsed && "justify-start gap-2",
+    collapsed && "justify-center",
+    isActive && "ring-2 ring-primary/30",
+  );
+
   const link = (
     <Link
       href="/cases/new"
-      className={cn(
-        buttonVariants({ variant: isActive ? "secondary" : "default" }),
-        "w-full justify-start gap-2",
-        collapsed && "justify-center px-0",
-      )}
+      className={className}
+      aria-current={isActive ? "page" : undefined}
       aria-label="Create a new case"
       onClick={() => {
         setSelectedMenu("new-case");
@@ -52,10 +57,8 @@ export function NewCaseButton({ collapsed = false }: NewCaseButtonProps) {
         render={
           <Link
             href="/cases/new"
-            className={cn(
-              buttonVariants({ variant: "default", size: "icon" }),
-              "w-full",
-            )}
+            className={className}
+            aria-current={isActive ? "page" : undefined}
             aria-label="Create a new case"
             onClick={() => {
               setSelectedMenu("new-case");
