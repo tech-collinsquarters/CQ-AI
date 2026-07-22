@@ -55,8 +55,11 @@
   --brand-gold: #cc9c54;
   --brand-gold-foreground: #1a1508;
 
-  /* Light theme — bright canvas and sidebar */
-  --background: #ffffff;
+  /*
+   * Light theme — warm cream canvas so white cards / panels have clear edges.
+   * Hierarchy: canvas (#faf9f7) < sidebar (#f3efe8) < raised cards (#ffffff).
+   */
+  --background: #faf9f7;
   --foreground: #1a1508;
   --card: #ffffff;
   --card-foreground: #1a1508;
@@ -66,13 +69,13 @@
   --primary-foreground: var(--brand-gold-foreground);
   --secondary: #f0ebe3;
   --secondary-foreground: #1a1508;
-  --muted: #f5f3ef;
+  --muted: #f0ebe3;
   --muted-foreground: #6e6a62;
   --accent: #f0ebe3;
   --accent-foreground: #1a1508;
   --destructive: #dc2626;
-  --border: rgb(26 21 8 / 12%);
-  --input: rgb(26 21 8 / 14%);
+  --border: rgb(26 21 8 / 16%);
+  --input: rgb(26 21 8 / 18%);
   --ring: var(--brand-gold);
   --chart-1: #cc9c54;
   --chart-2: #6e6a62;
@@ -81,13 +84,13 @@
   --chart-5: #e8e4dc;
   --radius: 0.625rem;
 
-  --sidebar: #f7f5f2;
+  --sidebar: #f3efe8;
   --sidebar-foreground: #1a1508;
   --sidebar-primary: var(--brand-gold);
   --sidebar-primary-foreground: var(--brand-gold-foreground);
   --sidebar-accent: #ebe6de;
   --sidebar-accent-foreground: #1a1508;
-  --sidebar-border: rgb(26 21 8 / 10%);
+  --sidebar-border: rgb(26 21 8 / 14%);
   --sidebar-ring: var(--brand-gold);
   color-scheme: light;
 }

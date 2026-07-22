@@ -20,7 +20,7 @@ export function TopNavbar() {
   const { sidebarCollapsed, toggleSidebarCollapsed } = useDashboardShell();
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/80 px-3 backdrop-blur supports-backdrop-filter:bg-background/70 md:px-4">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-card/90 px-3 backdrop-blur supports-backdrop-filter:bg-card/75 md:px-4">
       <div className="flex min-w-0 items-center gap-2">
         <ResponsiveDrawer />
 

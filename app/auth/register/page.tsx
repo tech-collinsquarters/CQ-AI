@@ -41,15 +41,18 @@ export default function RegisterPage() {
   });
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create account</CardTitle>
+    <div className="flex flex-1 items-start justify-center px-4 py-3 sm:items-center sm:py-6">
+      <Card className="w-full max-w-md border-border/70 shadow-md ring-1 ring-foreground/5">
+        <CardHeader className="gap-1 pb-0">
+          <CardTitle className="font-heading text-xl font-semibold tracking-tight">
+            Create account
+          </CardTitle>
           <CardDescription>
-            Register with your full name, email, and password.
+            Start your private legal workspace.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+
+        <CardContent className="space-y-3 pt-3">
           {form.formState.errors.root ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to register</AlertTitle>
@@ -73,82 +76,88 @@ export default function RegisterPage() {
                   });
                 }
               })}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        autoComplete="name"
-                        placeholder="Your full name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem className="gap-1.5 sm:col-span-2">
+                      <FormLabel>Full name</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoComplete="name"
+                          placeholder="Your full name"
+                          className="h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        autoComplete="email"
-                        placeholder="you@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="gap-1.5 sm:col-span-2">
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          autoComplete="email"
+                          placeholder="you@example.com"
+                          className="h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="At least 8 characters"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="gap-1.5">
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          autoComplete="new-password"
+                          placeholder="Min. 12 characters"
+                          className="h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="Repeat password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem className="gap-1.5">
+                      <FormLabel>Confirm</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          autoComplete="new-password"
+                          placeholder="Repeat password"
+                          className="h-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
@@ -163,10 +172,14 @@ export default function RegisterPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="justify-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/auth/login" className="ml-1 underline">
-            Log in
+
+        <CardFooter className="justify-center gap-1 text-sm text-muted-foreground">
+          <span>Already have an account?</span>
+          <Link
+            href="/auth/login"
+            className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
+          >
+            Sign in
           </Link>
         </CardFooter>
       </Card>

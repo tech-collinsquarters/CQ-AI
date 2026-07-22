@@ -11,14 +11,15 @@ type ThemeToggleProps = {
 };
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = !mounted || resolvedTheme === "dark";
+  const activeTheme = resolvedTheme ?? theme;
+  const isDark = activeTheme !== "light";
   const label = isDark ? "Switch to light mode" : "Switch to dark mode";
 
   return (
@@ -29,9 +30,12 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       className={className}
       aria-label={label}
       title={label}
+      disabled={!mounted}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? (
+      {!mounted ? (
+        <Sun className="size-4 opacity-50" aria-hidden />
+      ) : isDark ? (
         <Sun className="size-4" aria-hidden />
       ) : (
         <Moon className="size-4" aria-hidden />
