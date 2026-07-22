@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
+import { isMenuItemActive } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 
 type NewCaseButtonProps = {
@@ -17,13 +19,15 @@ type NewCaseButtonProps = {
 };
 
 export function NewCaseButton({ collapsed = false }: NewCaseButtonProps) {
+  const pathname = usePathname();
   const { setSelectedMenu, setMobileNavOpen } = useDashboardShell();
+  const isActive = isMenuItemActive("new-case", pathname);
 
   const link = (
     <Link
       href="/cases/new"
       className={cn(
-        buttonVariants({ variant: "default" }),
+        buttonVariants({ variant: isActive ? "secondary" : "default" }),
         "w-full justify-start gap-2",
         collapsed && "justify-center px-0",
       )}

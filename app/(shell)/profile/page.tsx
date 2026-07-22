@@ -23,15 +23,15 @@ export default function ProfilePage() {
           Profile
         </h1>
         <p className="text-sm text-muted-foreground">
-          Your account details from authentication.
+          Your account details and session settings.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>User profile</CardTitle>
+          <CardTitle>Account details</CardTitle>
           <CardDescription>
-            Synced from Supabase Auth and the Prisma User record.
+            Your name and contact information on file with Collins Quarters.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 text-sm">
@@ -51,14 +51,12 @@ export default function ProfilePage() {
                 <p className="text-muted-foreground">Email</p>
                 <p className="font-medium">{user?.email ?? "—"}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Role</p>
-                <p className="font-medium">{user?.role ?? "—"}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">User ID</p>
-                <p className="font-mono text-xs break-all">{user?.id ?? "—"}</p>
-              </div>
+              {user?.role === "ADMIN" ? (
+                <div>
+                  <p className="text-muted-foreground">Account type</p>
+                  <p className="font-medium">Administrator</p>
+                </div>
+              ) : null}
             </>
           )}
         </CardContent>

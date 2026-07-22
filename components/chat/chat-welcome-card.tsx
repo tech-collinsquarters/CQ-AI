@@ -40,8 +40,9 @@ export function ChatWelcomeCard({
           </div>
           <CardTitle className="text-xl">Your case has been created successfully</CardTitle>
           <CardDescription className="text-base">
-            Ask questions about your legal matter. Preview responses are shown
-            until the AI module is connected.
+            Ask questions about your legal matter. Counsel provides general
+            legal information to help you prepare — it is not a substitute for
+            advice from your solicitor.
           </CardDescription>
         </CardHeader>
 

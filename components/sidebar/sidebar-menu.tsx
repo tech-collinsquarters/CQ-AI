@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   MessageCircleQuestion,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
+import { isMenuItemActive } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 import type { DashboardMenuId } from "@/types/dashboard";
 
@@ -55,9 +57,9 @@ const CONTACT_ITEM: MenuItem = {
 };
 
 export function SidebarMenu({ collapsed = false }: SidebarMenuProps) {
+  const pathname = usePathname();
   const { user } = useAuth();
-  const { selectedMenu, setSelectedMenu, setMobileNavOpen } =
-    useDashboardShell();
+  const { setSelectedMenu, setMobileNavOpen } = useDashboardShell();
 
   const items = [
     ...MENU_ITEMS,
@@ -69,7 +71,8 @@ export function SidebarMenu({ collapsed = false }: SidebarMenuProps) {
     <nav aria-label="Primary" className="space-y-1 px-3">
       {items.map((item) => {
         const Icon = item.icon;
-        const isActive = !item.external && selectedMenu === item.id;
+        const isActive =
+          !item.external && isMenuItemActive(item.id, pathname);
         const className = cn(
           buttonVariants({
             variant: isActive ? "secondary" : "ghost",

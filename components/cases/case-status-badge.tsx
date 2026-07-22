@@ -9,6 +9,15 @@ const STATUS_LABELS: Record<CaseStatus, string> = {
   ARCHIVED: "Archived",
 };
 
+const STATUS_VARIANTS: Record<
+  CaseStatus,
+  "default" | "secondary" | "outline"
+> = {
+  ACTIVE: "default",
+  DRAFT: "outline",
+  ARCHIVED: "secondary",
+};
+
 type CaseStatusBadgeProps = {
   status: CaseStatus;
   className?: string;
@@ -16,13 +25,7 @@ type CaseStatusBadgeProps = {
 
 export function CaseStatusBadge({ status, className }: CaseStatusBadgeProps) {
   return (
-    <Badge
-      variant={status === "ACTIVE" ? "default" : "secondary"}
-      className={cn(
-        status === "ACTIVE" && "bg-emerald-600 text-white hover:bg-emerald-600/90",
-        className,
-      )}
-    >
+    <Badge variant={STATUS_VARIANTS[status]} className={cn(className)}>
       {STATUS_LABELS[status]}
     </Badge>
   );
