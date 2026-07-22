@@ -39,15 +39,18 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Log in</CardTitle>
+    <div className="flex flex-1 items-start justify-center px-4 py-4 sm:items-center sm:py-8">
+      <Card className="w-full max-w-md border-border/70 shadow-md ring-1 ring-foreground/5">
+        <CardHeader className="gap-1 pb-0">
+          <CardTitle className="font-heading text-xl font-semibold tracking-tight">
+            Welcome back
+          </CardTitle>
           <CardDescription>
-            Sign in with your email and password to continue.
+            Sign in to continue to Counsel.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+
+        <CardContent className="space-y-4 pt-4">
           {form.formState.errors.root ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to sign in</AlertTitle>
@@ -71,19 +74,20 @@ export default function LoginPage() {
                   });
                 }
               })}
-              className="space-y-4"
+              className="space-y-3.5"
             >
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="gap-1.5">
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         autoComplete="email"
                         placeholder="you@example.com"
+                        className="h-9"
                         {...field}
                       />
                     </FormControl>
@@ -96,13 +100,14 @@ export default function LoginPage() {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="gap-1.5">
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         autoComplete="current-password"
                         placeholder="••••••••"
+                        className="h-9"
                         {...field}
                       />
                     </FormControl>
@@ -111,7 +116,11 @@ export default function LoginPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="mt-1 w-full"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Spinner />
@@ -124,10 +133,14 @@ export default function LoginPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="justify-center text-sm text-muted-foreground">
-          No account?{" "}
-          <Link href="/auth/register" className="ml-1 underline">
-            Register
+
+        <CardFooter className="justify-center gap-1 text-sm text-muted-foreground">
+          <span>No account?</span>
+          <Link
+            href="/auth/register"
+            className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
+          >
+            Create one
           </Link>
         </CardFooter>
       </Card>

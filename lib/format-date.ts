@@ -34,3 +34,27 @@ export function formatRelativeTime(isoDate: string): string {
 
   return rtf.format(Math.round(seconds / 60), "minute");
 }
+
+/** Short timestamp for chat messages — time today, date + time otherwise. */
+export function formatMessageTimestamp(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
