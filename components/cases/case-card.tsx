@@ -12,7 +12,7 @@ type CaseCardProps = {
   caseItem: CaseListItem;
   active?: boolean;
   compact?: boolean;
-  /** "sidebar" renders on the permanently-dark sidebar chrome, not the page background */
+  /** "sidebar" uses sidebar color tokens instead of page background */
   variant?: "default" | "sidebar";
   onNavigate?: () => void;
 };

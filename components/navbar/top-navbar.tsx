@@ -4,6 +4,7 @@ import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { ResponsiveDrawer } from "@/components/sidebar/responsive-drawer";
 import { UserDropdown } from "@/components/navbar/user-dropdown";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -53,6 +54,8 @@ export function TopNavbar() {
       </div>
 
       <div className="flex items-center gap-1.5">
+        <ThemeToggle />
+
         <Tooltip>
           <TooltipTrigger
             render={

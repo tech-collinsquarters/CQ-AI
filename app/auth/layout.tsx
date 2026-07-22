@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
+
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function AuthLayout({
@@ -8,7 +10,11 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-background">
+    <div className="relative flex min-h-full flex-1 flex-col bg-background">
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
+
       <div className="flex justify-center pt-10 pb-2">
         <Image
           src="/logo.png"

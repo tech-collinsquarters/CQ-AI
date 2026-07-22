@@ -55,76 +55,81 @@
   --brand-gold: #cc9c54;
   --brand-gold-foreground: #1a1508;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  /* Light theme — bright canvas and sidebar */
+  --background: #ffffff;
+  --foreground: #1a1508;
+  --card: #ffffff;
+  --card-foreground: #1a1508;
+  --popover: #ffffff;
+  --popover-foreground: #1a1508;
   --primary: var(--brand-gold);
   --primary-foreground: var(--brand-gold-foreground);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --secondary: #f0ebe3;
+  --secondary-foreground: #1a1508;
+  --muted: #f5f3ef;
+  --muted-foreground: #6e6a62;
+  --accent: #f0ebe3;
+  --accent-foreground: #1a1508;
+  --destructive: #dc2626;
+  --border: rgb(26 21 8 / 12%);
+  --input: rgb(26 21 8 / 14%);
   --ring: var(--brand-gold);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #cc9c54;
+  --chart-2: #6e6a62;
+  --chart-3: #b8b3a8;
+  --chart-4: #4a4842;
+  --chart-5: #e8e4dc;
   --radius: 0.625rem;
 
-  /* Sidebar keeps a permanent dark "brand chrome" look — matches the near-
-     black nav bar on collinsquarters.com — regardless of the app's own
-     light/dark theme. */
-  --sidebar: #101012;
-  --sidebar-foreground: #f5f1e8;
+  --sidebar: #f7f5f2;
+  --sidebar-foreground: #1a1508;
   --sidebar-primary: var(--brand-gold);
   --sidebar-primary-foreground: var(--brand-gold-foreground);
-  --sidebar-accent: #1c1b18;
-  --sidebar-accent-foreground: #f5f1e8;
-  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-accent: #ebe6de;
+  --sidebar-accent-foreground: #1a1508;
+  --sidebar-border: rgb(26 21 8 / 10%);
   --sidebar-ring: var(--brand-gold);
+  color-scheme: light;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  /*
+   * Charcoal + gold dark theme.
+   * Hierarchy: canvas (#1f1f1f) < chrome/sidebar (#2d2d2d) < raised cards (#353535).
+   */
+  --background: #1f1f1f;
+  --foreground: #f5f1e8;
+  --card: #353535;
+  --card-foreground: #f5f1e8;
+  --popover: #353535;
+  --popover-foreground: #f5f1e8;
   --primary: var(--brand-gold);
   --primary-foreground: var(--brand-gold-foreground);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --secondary: #2d2d2d;
+  --secondary-foreground: #f5f1e8;
+  --muted: #2a2a2a;
+  --muted-foreground: #b8b3a8;
+  --accent: #3a3a3a;
+  --accent-foreground: #f5f1e8;
+  --destructive: #e85d4c;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 12%);
   --ring: var(--brand-gold);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: #101012;
+  --chart-1: #cc9c54;
+  --chart-2: #b8b3a8;
+  --chart-3: #6e6a62;
+  --chart-4: #4a4842;
+  --chart-5: #353535;
+
+  --sidebar: #2d2d2d;
   --sidebar-foreground: #f5f1e8;
   --sidebar-primary: var(--brand-gold);
   --sidebar-primary-foreground: var(--brand-gold-foreground);
-  --sidebar-accent: #1c1b18;
+  --sidebar-accent: #3a3a3a;
   --sidebar-accent-foreground: #f5f1e8;
   --sidebar-border: rgb(255 255 255 / 10%);
   --sidebar-ring: var(--brand-gold);
+  color-scheme: dark;
 }
 
 @layer base {

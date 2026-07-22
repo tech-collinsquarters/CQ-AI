@@ -33,7 +33,7 @@ export function SearchCases({ collapsed = false }: SearchCasesProps) {
         value={caseSearchQuery}
         placeholder="Search cases…"
         className={cn(
-          "h-9 bg-background pl-9 text-foreground placeholder:text-muted-foreground",
+          "h-9 bg-sidebar-accent/60 pl-9 text-sidebar-foreground placeholder:text-muted-foreground",
         )}
         aria-label="Search cases"
         onFocus={() => setSelectedMenu("search")}
