@@ -16,6 +16,7 @@ type DashboardShellContextValue = DashboardShellState & {
   toggleSidebarCollapsed: () => void;
   setMobileNavOpen: (open: boolean) => void;
   setSelectedMenu: (menu: DashboardMenuId) => void;
+  setCaseSearchQuery: (query: string) => void;
 };
 
 const DashboardShellContext =
@@ -25,6 +26,7 @@ export function DashboardShellProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<DashboardMenuId>("home");
+  const [caseSearchQuery, setCaseSearchQuery] = useState("");
 
   const toggleSidebarCollapsed = useCallback(() => {
     setSidebarCollapsed((prev) => !prev);
@@ -35,12 +37,20 @@ export function DashboardShellProvider({ children }: { children: ReactNode }) {
       sidebarCollapsed,
       mobileNavOpen,
       selectedMenu,
+      caseSearchQuery,
       setSidebarCollapsed,
       toggleSidebarCollapsed,
       setMobileNavOpen,
       setSelectedMenu,
+      setCaseSearchQuery,
     }),
-    [sidebarCollapsed, mobileNavOpen, selectedMenu, toggleSidebarCollapsed],
+    [
+      sidebarCollapsed,
+      mobileNavOpen,
+      selectedMenu,
+      caseSearchQuery,
+      toggleSidebarCollapsed,
+    ],
   );
 
   return (

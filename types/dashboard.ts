@@ -12,4 +12,6 @@ export type DashboardShellState = {
   sidebarCollapsed: boolean;
   mobileNavOpen: boolean;
   selectedMenu: DashboardMenuId;
+  /** Filters Case History in the sidebar */
+  caseSearchQuery: string;
 };

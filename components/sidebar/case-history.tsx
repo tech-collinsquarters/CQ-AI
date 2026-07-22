@@ -15,7 +15,14 @@ type CaseHistoryProps = {
 
 export function CaseHistory({ collapsed = false }: CaseHistoryProps) {
   const { data: cases = [], isLoading } = useCases();
-  const { setMobileNavOpen } = useDashboardShell();
+  const { caseSearchQuery, setMobileNavOpen } = useDashboardShell();
+
+  const query = caseSearchQuery.trim().toLowerCase();
+  const filteredCases = query
+    ? cases.filter((caseItem) =>
+        caseItem.title.toLowerCase().includes(query),
+      )
+    : cases;
 
   if (collapsed) {
     return (
@@ -49,23 +56,25 @@ export function CaseHistory({ collapsed = false }: CaseHistoryProps) {
             <Skeleton className="h-14 w-full rounded-lg" />
             <Skeleton className="h-14 w-full rounded-lg" />
           </div>
-        ) : cases.length === 0 ? (
+        ) : filteredCases.length === 0 ? (
           <div
             className={cn(
               "flex flex-col items-center justify-center gap-2 px-4 py-10 text-center",
             )}
           >
             <p className="text-sm font-medium text-sidebar-foreground">
-              No cases yet.
+              {query ? "No matching cases." : "No cases yet."}
             </p>
             <p className="max-w-[14rem] text-xs text-sidebar-foreground/60">
-              Create your first case to start organizing legal work.
+              {query
+                ? "Try a different search term."
+                : "Create your first case to start organizing legal work."}
             </p>
           </div>
         ) : (
           <div className="p-2">
             <CaseList
-              cases={cases}
+              cases={filteredCases}
               compact
               variant="sidebar"
               onNavigate={() => setMobileNavOpen(false)}

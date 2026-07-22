@@ -11,7 +11,8 @@ type SearchCasesProps = {
 };
 
 export function SearchCases({ collapsed = false }: SearchCasesProps) {
-  const { setSelectedMenu } = useDashboardShell();
+  const { caseSearchQuery, setCaseSearchQuery, setSelectedMenu } =
+    useDashboardShell();
 
   if (collapsed) {
     return (
@@ -29,10 +30,14 @@ export function SearchCases({ collapsed = false }: SearchCasesProps) {
       />
       <Input
         type="search"
+        value={caseSearchQuery}
         placeholder="Search cases…"
-        className={cn("h-9 bg-background pl-9")}
+        className={cn(
+          "h-9 bg-background pl-9 text-foreground placeholder:text-muted-foreground",
+        )}
         aria-label="Search cases"
         onFocus={() => setSelectedMenu("search")}
+        onChange={(event) => setCaseSearchQuery(event.target.value)}
       />
     </div>
   );
