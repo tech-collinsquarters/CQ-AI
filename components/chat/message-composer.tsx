@@ -80,12 +80,12 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        "shrink-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/80",
+        "shrink-0 border-t border-border bg-background/95 px-4 py-3 shadow-[0_-4px_24px_-8px_rgb(0_0_0/8%)] backdrop-blur supports-backdrop-filter:bg-background/80 dark:shadow-[0_-4px_24px_-8px_rgb(0_0_0/40%)]",
         className,
       )}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-        <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30">
+        <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-md transition-shadow focus-within:border-ring focus-within:shadow-lg focus-within:ring-3 focus-within:ring-ring/25">
           <Textarea
             ref={textareaRef}
             value={value}
@@ -158,14 +158,20 @@ export function MessageComposer({
           </Tooltip>
         </div>
 
-        <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
-          <span>Enter to send · Shift+Enter for new line</span>
-          <span
-            className={cn(isOverLimit && "font-medium text-destructive")}
-            aria-live="polite"
-          >
-            {charCount} / {characterLimit}
-          </span>
+        <div className="flex flex-col gap-1 px-1 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between">
+            <span>Enter to send · Shift+Enter for new line</span>
+            <span
+              className={cn(isOverLimit && "font-medium text-destructive")}
+              aria-live="polite"
+            >
+              {charCount} / {characterLimit}
+            </span>
+          </div>
+          <p className="text-center text-[11px] leading-relaxed text-muted-foreground/90">
+            Counsel provides general legal information only — not a substitute
+            for advice from your solicitor.
+          </p>
         </div>
       </div>
     </div>

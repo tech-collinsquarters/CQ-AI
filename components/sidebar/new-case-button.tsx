@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
+import { isMenuItemActive } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 
 type NewCaseButtonProps = {
@@ -17,16 +19,23 @@ type NewCaseButtonProps = {
 };
 
 export function NewCaseButton({ collapsed = false }: NewCaseButtonProps) {
+  const pathname = usePathname();
   const { setSelectedMenu, setMobileNavOpen } = useDashboardShell();
+  const isActive = isMenuItemActive("new-case", pathname);
+
+  const className = cn(
+    buttonVariants({ variant: "default", size: collapsed ? "icon" : "default" }),
+    "w-full",
+    !collapsed && "justify-start gap-2",
+    collapsed && "justify-center",
+    isActive && "ring-2 ring-primary/30",
+  );
 
   const link = (
     <Link
       href="/cases/new"
-      className={cn(
-        buttonVariants({ variant: "default" }),
-        "w-full justify-start gap-2",
-        collapsed && "justify-center px-0",
-      )}
+      className={className}
+      aria-current={isActive ? "page" : undefined}
       aria-label="Create a new case"
       onClick={() => {
         setSelectedMenu("new-case");
@@ -48,10 +57,8 @@ export function NewCaseButton({ collapsed = false }: NewCaseButtonProps) {
         render={
           <Link
             href="/cases/new"
-            className={cn(
-              buttonVariants({ variant: "default", size: "icon" }),
-              "w-full",
-            )}
+            className={className}
+            aria-current={isActive ? "page" : undefined}
             aria-label="Create a new case"
             onClick={() => {
               setSelectedMenu("new-case");

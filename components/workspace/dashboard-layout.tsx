@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { FileText } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { TopNavbar } from "@/components/navbar/top-navbar";
 import { Sidebar } from "@/components/sidebar/sidebar";
@@ -14,21 +14,15 @@ import {
   useDashboardShell,
 } from "@/hooks/use-dashboard-shell";
 import { RightPanelProvider, useRightPanel } from "@/hooks/use-right-panel";
+import { isCaseWorkspacePath } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 
-function RightPanelEmptyState() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center text-sm text-muted-foreground">
-      <FileText className="size-6" aria-hidden />
-      <p>Open a case to see its files and conversation summary here.</p>
-    </div>
-  );
-}
-
 function DashboardShellFrame({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { sidebarCollapsed } = useDashboardShell();
   const { content: rightPanelContent } = useRightPanel();
   const { loading, user } = useAuth();
+  const showRightPanel = isCaseWorkspacePath(pathname);
 
   if (loading && !user) {
     return <DashboardSkeleton />;
@@ -49,12 +43,14 @@ function DashboardShellFrame({ children }: { children: ReactNode }) {
         <TopNavbar />
         <div className="flex min-h-0 flex-1">
           <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
-          <aside
-            className="hidden w-72 shrink-0 overflow-y-auto border-l border-border bg-muted/20 xl:block"
-            aria-label="Sources panel"
-          >
-            {rightPanelContent ?? <RightPanelEmptyState />}
-          </aside>
+          {showRightPanel ? (
+            <aside
+              className="hidden w-72 shrink-0 overflow-y-auto border-l border-border bg-muted/20 xl:block"
+              aria-label="Case files and summary"
+            >
+              {rightPanelContent}
+            </aside>
+          ) : null}
         </div>
       </div>
     </div>

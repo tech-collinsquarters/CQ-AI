@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   MessageCircleQuestion,
@@ -9,14 +10,10 @@ import {
   User,
 } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { SidebarNavLink } from "@/components/sidebar/sidebar-nav-link";
 import { useAuth } from "@/hooks/use-auth";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
+import { isMenuItemActive } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 import type { DashboardMenuId } from "@/types/dashboard";
 
@@ -29,7 +26,6 @@ type MenuItem = {
   label: string;
   href: string;
   icon: typeof Home;
-  /** Opens href in a new tab as a plain anchor instead of client-side routing. */
   external?: boolean;
 };
 
@@ -55,9 +51,9 @@ const CONTACT_ITEM: MenuItem = {
 };
 
 export function SidebarMenu({ collapsed = false }: SidebarMenuProps) {
+  const pathname = usePathname();
   const { user } = useAuth();
-  const { selectedMenu, setSelectedMenu, setMobileNavOpen } =
-    useDashboardShell();
+  const { setSelectedMenu, setMobileNavOpen } = useDashboardShell();
 
   const items = [
     ...MENU_ITEMS,
@@ -65,102 +61,30 @@ export function SidebarMenu({ collapsed = false }: SidebarMenuProps) {
     CONTACT_ITEM,
   ];
 
+  const handleNavigate = (id: DashboardMenuId) => () => {
+    setSelectedMenu(id);
+    setMobileNavOpen(false);
+  };
+
   return (
-    <nav aria-label="Primary" className="space-y-1 px-3">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const isActive = !item.external && selectedMenu === item.id;
-        const className = cn(
-          buttonVariants({
-            variant: isActive ? "secondary" : "ghost",
-            size: collapsed ? "icon" : "default",
-          }),
-          "w-full",
-          !collapsed && "justify-start gap-2",
-        );
-
-        if (item.external) {
-          const externalLink = (
-            <a
-              key={item.id}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={className}
-              aria-label={item.label}
-            >
-              <Icon className="size-4" aria-hidden />
-              {!collapsed ? item.label : null}
-            </a>
-          );
-
-          if (!collapsed) {
-            return externalLink;
+    <nav
+      aria-label="Primary"
+      className={cn("px-3 pb-2", collapsed ? "space-y-1" : "space-y-0.5")}
+    >
+      {items.map((item) => (
+        <SidebarNavLink
+          key={item.id}
+          href={item.href}
+          label={item.label}
+          icon={item.icon}
+          collapsed={collapsed}
+          external={item.external}
+          isActive={!item.external && isMenuItemActive(item.id, pathname)}
+          onClick={
+            item.external ? undefined : handleNavigate(item.id)
           }
-
-          return (
-            <Tooltip key={item.id}>
-              <TooltipTrigger
-                render={
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={className}
-                    aria-label={item.label}
-                  />
-                }
-              >
-                <Icon className="size-4" aria-hidden />
-              </TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            </Tooltip>
-          );
-        }
-
-        const link = (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={className}
-            aria-current={isActive ? "page" : undefined}
-            aria-label={item.label}
-            onClick={() => {
-              setSelectedMenu(item.id);
-              setMobileNavOpen(false);
-            }}
-          >
-            <Icon className="size-4" aria-hidden />
-            {!collapsed ? item.label : null}
-          </Link>
-        );
-
-        if (!collapsed) {
-          return link;
-        }
-
-        return (
-          <Tooltip key={item.id}>
-            <TooltipTrigger
-              render={
-                <Link
-                  href={item.href}
-                  className={className}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-label={item.label}
-                  onClick={() => {
-                    setSelectedMenu(item.id);
-                    setMobileNavOpen(false);
-                  }}
-                />
-              }
-            >
-              <Icon className="size-4" aria-hidden />
-            </TooltipTrigger>
-            <TooltipContent side="right">{item.label}</TooltipContent>
-          </Tooltip>
-        );
-      })}
+        />
+      ))}
     </nav>
   );
 }
