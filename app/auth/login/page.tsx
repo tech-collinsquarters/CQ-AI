@@ -130,6 +130,12 @@ export default function LoginPage() {
                   "Sign in"
                 )}
               </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <Link href="/auth/forgot-password" className="underline">
+                  Forgot password?
+                </Link>
+              </p>
             </form>
           </Form>
         </CardContent>
