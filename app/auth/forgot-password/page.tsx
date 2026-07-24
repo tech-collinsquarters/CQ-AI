@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -24,33 +25,41 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/use-auth";
-import { loginSchema, type LoginInput } from "@/validators/auth";
+import { forgotPasswordRequest } from "@/lib/auth-client";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordInput,
+} from "@/validators/auth";
 
-export default function LoginPage() {
-  const { login, loading } = useAuth();
+export default function ForgotPasswordPage() {
+  const [submittedMessage, setSubmittedMessage] = useState<string | null>(null);
 
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+  const form = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
   });
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Log in</CardTitle>
+          <CardTitle>Forgot password</CardTitle>
           <CardDescription>
-            Sign in with your email and password to continue.
+            Enter your email and we will send reset instructions if an account
+            exists.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {submittedMessage ? (
+            <Alert>
+              <AlertTitle>Check your email</AlertTitle>
+              <AlertDescription>{submittedMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+
           {form.formState.errors.root ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to sign in</AlertTitle>
+              <AlertTitle>Unable to send reset email</AlertTitle>
               <AlertDescription>
                 {form.formState.errors.root.message}
               </AlertDescription>
@@ -61,13 +70,15 @@ export default function LoginPage() {
             <form
               onSubmit={form.handleSubmit(async (values) => {
                 try {
-                  await login(values);
+                  const result = await forgotPasswordRequest(values);
+                  setSubmittedMessage(result.message);
+                  form.reset();
                 } catch (error) {
                   form.setError("root", {
                     message:
                       error instanceof Error
                         ? error.message
-                        : "Invalid credentials",
+                        : "Unable to send reset email",
                   });
                 }
               })}
@@ -92,48 +103,26 @@ export default function LoginPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        autoComplete="current-password"
-                        placeholder="••••••••"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? (
                   <>
                     <Spinner />
-                    Signing in…
+                    Sending…
                   </>
                 ) : (
-                  "Sign in"
+                  "Send reset link"
                 )}
               </Button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                <Link href="/auth/forgot-password" className="underline">
-                  Forgot password?
-                </Link>
-              </p>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="justify-center text-sm text-muted-foreground">
-          No account?{" "}
-          <Link href="/auth/register" className="ml-1 underline">
-            Register
+          <Link href="/auth/login" className="underline">
+            Back to sign in
           </Link>
         </CardFooter>
       </Card>
