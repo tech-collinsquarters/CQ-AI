@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { CategoryStep } from "@/components/cases/category-card";
 import { DescriptionStep } from "@/components/cases/description-step";
@@ -22,7 +22,7 @@ import { Form } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
 import { isImmigrationCategory } from "@/constants/case-categories";
 import { useCreateCase } from "@/hooks/use-cases";
-import { getIntakeSteps, getStepQuestion, type IntakeStepId } from "@/lib/intake-steps";
+import { getIntakeSteps, getStepQuestion } from "@/lib/intake-steps";
 import { cn } from "@/lib/utils";
 import {
   intakeDescriptionSchema,
@@ -46,17 +46,12 @@ export function IntakeWizard() {
     mode: "onChange",
   });
 
-  const category = form.watch("category");
+  const category = useWatch({ control: form.control, name: "category" });
+  const subcategory = useWatch({ control: form.control, name: "subcategory" });
   const steps = useMemo(() => getIntakeSteps(category), [category]);
   const currentStep = steps[stepIndex] ?? steps[0];
   const isLastStep = stepIndex === steps.length - 1;
   const isFirstStep = stepIndex === 0;
-
-  useEffect(() => {
-    if (stepIndex >= steps.length) {
-      setStepIndex(Math.max(steps.length - 1, 0));
-    }
-  }, [stepIndex, steps.length]);
 
   async function validateCurrentStep() {
     if (currentStep === "category") {
@@ -202,7 +197,7 @@ export function IntakeWizard() {
                 {currentStep === "subcategory" ? (
                   <div className="space-y-2">
                     <SubcategorySelector
-                      selected={form.watch("subcategory")}
+                      selected={subcategory}
                       onSelect={handleSubcategorySelect}
                     />
                     {form.formState.errors.subcategory ? (

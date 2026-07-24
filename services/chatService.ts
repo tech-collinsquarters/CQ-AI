@@ -59,13 +59,39 @@ export async function getChatQuota(user: AppUser): Promise<ChatQuota> {
   return { limit, used, remaining: Math.max(0, limit - used) };
 }
 
-async function recordMessageSent(userId: string): Promise<void> {
+/**
+ * Atomically reserves one daily message. The conditional conflict update
+ * prevents concurrent requests from exceeding a user's plan limit.
+ */
+export async function reserveChatMessage(user: AppUser): Promise<ChatQuota | null> {
   const day = utcToday();
-  await getPrisma().dailyUsage.upsert({
-    where: { userId_day: { userId, day } },
-    create: { userId, day, messageCount: 1 },
-    update: { messageCount: { increment: 1 } },
-  });
+  const limit = getPlanConfig(user.plan).dailyMessageLimit;
+  const rows = await getPrisma().$queryRaw<Array<{ messageCount: number }>>`
+    INSERT INTO "daily_usage" (
+      "id", "userId", "day", "messageCount", "inputTokens", "outputTokens"
+    )
+    VALUES (gen_random_uuid(), ${user.id}::uuid, ${day}::date, 1, 0, 0)
+    ON CONFLICT ("userId", "day") DO UPDATE
+      SET "messageCount" = "daily_usage"."messageCount" + 1
+      WHERE "daily_usage"."messageCount" < ${limit}
+    RETURNING "messageCount"
+  `;
+
+  const used = rows[0]?.messageCount;
+  if (used === undefined) {
+    return null;
+  }
+  return { limit, used, remaining: Math.max(0, limit - used) };
+}
+
+/** Refunds one reserved message when Bedrock fails or the client disconnects. */
+export async function releaseChatMessage(userId: string): Promise<void> {
+  const day = utcToday();
+  await getPrisma().$executeRaw`
+    UPDATE "daily_usage"
+    SET "messageCount" = GREATEST("messageCount" - 1, 0)
+    WHERE "userId" = ${userId}::uuid AND "day" = ${day}::date
+  `;
 }
 
 async function recordTokenUsage(
@@ -92,15 +118,17 @@ export async function* streamAssistantReply(options: {
   user: AppUser;
   caseRecord: CaseDto;
   content: string;
+  signal?: AbortSignal;
 }): AsyncGenerator<ChatStreamEvent> {
-  const { user, caseRecord, content } = options;
+  const { user, caseRecord, content, signal } = options;
   const prisma = getPrisma();
 
   const userMessage = await prisma.chatMessage.create({
     data: { caseId: caseRecord.id, role: ChatRole.USER, content },
   });
-  await recordMessageSent(user.id);
   yield { type: "user_message", message: toDto(userMessage) };
+
+  let assistantPersisted = false;
 
   try {
     const [history, caseFiles] = await Promise.all([
@@ -162,7 +190,7 @@ export async function* streamAssistantReply(options: {
         maxTokens: MAX_RESPONSE_TOKENS,
         temperature: 0.3,
       },
-    });
+    }, signal);
 
     let assistantText = "";
     let inputTokens = 0;
@@ -183,6 +211,10 @@ export async function* streamAssistantReply(options: {
       }
     }
 
+    if (!assistantText.trim()) {
+      throw new Error("Bedrock returned an empty assistant response");
+    }
+
     const assistantMessage = await prisma.chatMessage.create({
       data: {
         caseId: caseRecord.id,
@@ -193,6 +225,7 @@ export async function* streamAssistantReply(options: {
       },
     });
     await recordTokenUsage(user.id, inputTokens, outputTokens);
+    assistantPersisted = true;
 
     yield {
       type: "done",
@@ -200,11 +233,26 @@ export async function* streamAssistantReply(options: {
       quota: await getChatQuota(user),
     };
   } catch (error) {
+    if (!assistantPersisted) {
+      await releaseChatMessage(user.id).catch((releaseError) =>
+        console.error("releaseChatMessage failed:", releaseError),
+      );
+      await prisma.chatMessage
+        .delete({ where: { id: userMessage.id } })
+        .catch((deleteError) =>
+          console.error("Failed to remove orphan user message:", deleteError),
+        );
+    }
+
+    if (signal?.aborted) {
+      return;
+    }
     console.error("streamAssistantReply failed:", error);
     yield {
       type: "error",
       error:
         "The assistant could not complete a response. Please try again in a moment.",
+      quota: await getChatQuota(user),
     };
   }
 }

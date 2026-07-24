@@ -1,4 +1,4 @@
-import { Plan } from "@prisma/client";
+import type { Plan } from "@prisma/client";
 
 export type PlanConfig = {
   label: string;
@@ -18,30 +18,33 @@ export type PlanConfig = {
 const MB = 1024 * 1024;
 
 export const PLAN_CONFIG: Record<Plan, PlanConfig> = {
-  [Plan.FREE]: {
+  FREE: {
     label: "Free",
-    dailyMessageLimit: 20,
+    dailyMessageLimit: 2,
     description: "Getting started — limited daily AI messages",
     maxCaseFiles: 3,
     maxCaseFilesTotalBytes: 8 * MB,
   },
-  [Plan.PRO]: {
+  PRO: {
     label: "Pro",
-    dailyMessageLimit: 200,
+    dailyMessageLimit: 20,
     description: "For active matters — high daily AI message allowance",
-    maxCaseFiles: 15,
-    maxCaseFilesTotalBytes: 30 * MB,
+    // Bedrock Converse accepts at most five documents in one message.
+    maxCaseFiles: 5,
+    maxCaseFilesTotalBytes: 18 * MB,
   },
-  [Plan.ENTERPRISE]: {
+  ENTERPRISE: {
     label: "Enterprise",
-    dailyMessageLimit: 2000,
+    dailyMessageLimit: 100,
     description: "Firm-wide usage with priority support",
-    maxCaseFiles: 50,
-    maxCaseFilesTotalBytes: 80 * MB,
+    // Larger knowledge bases should use an ingestion/RAG pipeline rather than
+    // embedding every raw file in every model request.
+    maxCaseFiles: 5,
+    maxCaseFilesTotalBytes: 18 * MB,
   },
 };
 
-export const PLAN_ORDER: Plan[] = [Plan.FREE, Plan.PRO, Plan.ENTERPRISE];
+export const PLAN_ORDER: Plan[] = ["FREE", "PRO", "ENTERPRISE"];
 
 export function getPlanConfig(plan: Plan): PlanConfig {
   return PLAN_CONFIG[plan];

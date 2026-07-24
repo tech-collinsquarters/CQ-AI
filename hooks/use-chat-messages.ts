@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchCaseMessages, streamChatMessage } from "@/lib/chat-client";
 import type {
@@ -50,8 +50,17 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
   const [isTyping, setIsTyping] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [quota, setQuota] = useState<ChatQuota | null>(null);
+  const activeStreamRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    return () => {
+      activeStreamRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    activeStreamRef.current?.abort();
+    activeStreamRef.current = null;
     if (!caseId) {
       return;
     }
@@ -105,7 +114,13 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
       };
 
       try {
-        await streamChatMessage(caseId, trimmed, (event) => {
+        const controller = new AbortController();
+        activeStreamRef.current = controller;
+
+        await streamChatMessage(
+          caseId,
+          trimmed,
+          (event) => {
           switch (event.type) {
             case "user_message":
               setMessages((prev) =>
@@ -147,17 +162,28 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
               );
               break;
             case "error":
+              if (event.quota) {
+                setQuota(event.quota);
+              }
               appendAssistantError(event.error);
               break;
           }
-        });
+        },
+          controller.signal,
+        );
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
         appendAssistantError(
           error instanceof Error
             ? error.message
             : "Something went wrong while generating a response. Please try again.",
         );
       } finally {
+        if (activeStreamRef.current?.signal.aborted) {
+          activeStreamRef.current = null;
+        }
         setIsTyping(false);
         setIsBusy(false);
       }

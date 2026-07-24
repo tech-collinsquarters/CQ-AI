@@ -4,10 +4,13 @@ import { getCurrentAdmin } from "@/services/authService";
 import { listUsersForAdmin } from "@/services/adminService";
 
 function csvEscape(value: string): string {
-  if (/[",\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // Prevent spreadsheet applications from interpreting user-controlled cells
+  // as formulas when an administrator opens the export.
+  const safeValue = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  if (/[",\n]/.test(safeValue)) {
+    return `"${safeValue.replace(/"/g, '""')}"`;
   }
-  return value;
+  return safeValue;
 }
 
 export async function GET() {

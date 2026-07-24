@@ -39,12 +39,14 @@ export async function streamChatMessage(
   caseId: string,
   content: string,
   onEvent: (event: ChatStreamEvent) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const response = await fetch(`/api/cases/${caseId}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({ content }),
+    signal,
   });
 
   if (!response.ok) {

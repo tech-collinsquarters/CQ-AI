@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
   "/auth/forgot-password",
   "/auth/reset-password",
 ];
+const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 function isPublicPath(pathname: string) {
   if (
@@ -20,7 +21,44 @@ function isPublicPath(pathname: string) {
   return pathname.startsWith("/api/auth/");
 }
 
+function isCrossSiteMutation(request: NextRequest): boolean {
+  if (
+    !request.nextUrl.pathname.startsWith("/api/") ||
+    !UNSAFE_METHODS.has(request.method)
+  ) {
+    return false;
+  }
+
+  if (request.headers.get("sec-fetch-site") === "cross-site") {
+    return true;
+  }
+
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    return new URL(origin).origin !== request.nextUrl.origin;
+  } catch {
+    return true;
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  // Cookie-authenticated mutations must originate from this application.
+  // Fetch Metadata covers modern browsers; Origin is the fallback.
+  if (isCrossSiteMutation(request)) {
+    return NextResponse.json(
+      { error: "Cross-site request rejected" },
+      { status: 403 },
+    );
+  }
+
+  if (request.nextUrl.pathname === "/api/health") {
+    return NextResponse.next();
+  }
+
   const { user, supabaseResponse } = await updateSession(request);
   const { pathname } = request.nextUrl;
 

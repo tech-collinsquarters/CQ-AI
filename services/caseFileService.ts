@@ -5,9 +5,18 @@ import { CASE_FILES_BUCKET, getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getPrisma } from "@/lib/prisma";
 import type { AppUser } from "@/services/authService";
 import type { CaseDto, CaseFileDto } from "@/types/case";
-import { classifyMimeType } from "@/validators/case-files";
+import {
+  classifyMimeType,
+  DOCUMENT_MIME_TO_FORMAT,
+  IMAGE_MIME_TO_FORMAT,
+  MAX_BEDROCK_DOCUMENT_BYTES,
+} from "@/validators/case-files";
 
 let bucketEnsured = false;
+const ALLOWED_CASE_FILE_MIME_TYPES = [
+  ...Object.keys(IMAGE_MIME_TO_FORMAT),
+  ...Object.keys(DOCUMENT_MIME_TO_FORMAT),
+];
 
 /** Creates the private case-files bucket on first use if it doesn't exist yet. */
 async function ensureBucket(): Promise<void> {
@@ -23,11 +32,27 @@ async function ensureBucket(): Promise<void> {
   if (!buckets.some((bucket) => bucket.name === CASE_FILES_BUCKET)) {
     const { error: createError } = await supabase.storage.createBucket(
       CASE_FILES_BUCKET,
-      { public: false },
+      {
+        public: false,
+        fileSizeLimit: MAX_BEDROCK_DOCUMENT_BYTES,
+        allowedMimeTypes: ALLOWED_CASE_FILE_MIME_TYPES,
+      },
     );
     // Ignore a race where another request created it first.
     if (createError && !/already exists/i.test(createError.message)) {
       throw new Error(`Unable to create storage bucket: ${createError.message}`);
+    }
+  } else {
+    const { error: updateError } = await supabase.storage.updateBucket(
+      CASE_FILES_BUCKET,
+      {
+        public: false,
+        fileSizeLimit: MAX_BEDROCK_DOCUMENT_BYTES,
+        allowedMimeTypes: ALLOWED_CASE_FILE_MIME_TYPES,
+      },
+    );
+    if (updateError) {
+      throw new Error(`Unable to secure storage bucket: ${updateError.message}`);
     }
   }
   bucketEnsured = true;
@@ -63,19 +88,20 @@ export async function checkCaseFileLimits(
   incomingBytes: number,
 ): Promise<CaseFileLimitError | null> {
   const plan = getPlanConfig(user.plan);
-  const existing = await getPrisma().caseFile.findMany({
+  const existing = await getPrisma().caseFile.aggregate({
     where: { caseId },
-    select: { sizeBytes: true },
+    _count: { _all: true },
+    _sum: { sizeBytes: true },
   });
 
-  if (existing.length >= plan.maxCaseFiles) {
+  if (existing._count._all >= plan.maxCaseFiles) {
     return {
       code: "too_many_files",
       message: `This case already has the maximum of ${plan.maxCaseFiles} files for your plan. Remove a file or upgrade your plan.`,
     };
   }
 
-  const currentTotal = existing.reduce((sum, f) => sum + f.sizeBytes, 0);
+  const currentTotal = existing._sum.sizeBytes ?? 0;
   if (currentTotal + incomingBytes > plan.maxCaseFilesTotalBytes) {
     const remainingMb = Math.max(
       0,
@@ -88,6 +114,14 @@ export async function checkCaseFileLimits(
   }
 
   return null;
+}
+
+function sanitizeStorageFileName(fileName: string): string {
+  const cleaned = fileName
+    .replace(/[\u0000-\u001f\u007f/\\]+/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || "upload").slice(0, 180);
 }
 
 export async function createCaseFile(options: {
@@ -114,7 +148,8 @@ export async function createCaseFile(options: {
 
   await ensureBucket();
 
-  const storagePath = `cases/${caseRecord.id}/${crypto.randomUUID()}-${fileName}`;
+  const safeFileName = sanitizeStorageFileName(fileName);
+  const storagePath = `cases/${caseRecord.id}/${crypto.randomUUID()}-${safeFileName}`;
   const supabase = getSupabaseAdmin();
   const { error: uploadError } = await supabase.storage
     .from(CASE_FILES_BUCKET)
@@ -124,17 +159,29 @@ export async function createCaseFile(options: {
     throw new Error(`Upload failed: ${uploadError.message}`);
   }
 
-  const file = await getPrisma().caseFile.create({
-    data: {
-      caseId: caseRecord.id,
-      uploadedBy: user.id,
-      fileName,
-      mimeType,
-      sizeBytes: bytes.byteLength,
-      storagePath,
-      kind: kind as CaseFileKind,
-    },
-  });
+  let file: CaseFile;
+  try {
+    file = await getPrisma().caseFile.create({
+      data: {
+        caseId: caseRecord.id,
+        uploadedBy: user.id,
+        fileName: safeFileName,
+        mimeType,
+        sizeBytes: bytes.byteLength,
+        storagePath,
+        kind: kind as CaseFileKind,
+      },
+    });
+  } catch (error) {
+    // Compensate for a database failure after Storage accepted the upload.
+    await supabase.storage
+      .from(CASE_FILES_BUCKET)
+      .remove([storagePath])
+      .catch((cleanupError) =>
+        console.error("Failed to clean up orphaned upload:", cleanupError),
+      );
+    throw error;
+  }
 
   return toDto(file);
 }
@@ -151,7 +198,12 @@ export async function deleteCaseFile(
   }
 
   const supabase = getSupabaseAdmin();
-  await supabase.storage.from(CASE_FILES_BUCKET).remove([file.storagePath]);
+  const { error } = await supabase.storage
+    .from(CASE_FILES_BUCKET)
+    .remove([file.storagePath]);
+  if (error) {
+    throw new Error(`Unable to remove stored file: ${error.message}`);
+  }
   await getPrisma().caseFile.delete({ where: { id: file.id } });
   return true;
 }

@@ -152,5 +152,6 @@ model DailyUsage {
   outputTokens Int      @default(0)
 
   @@unique([userId, day])
+  @@index([day])
   @@map("daily_usage")
 }

@@ -1,5 +1,9 @@
 import { CaseFileKind } from "@prisma/client";
 
+const MB = 1024 * 1024;
+export const MAX_BEDROCK_IMAGE_BYTES = Math.floor(3.75 * MB);
+export const MAX_BEDROCK_DOCUMENT_BYTES = Math.floor(4.5 * MB);
+
 /**
  * Mime types accepted for case knowledge files, mapped to the Bedrock
  * Converse API's ImageFormat/DocumentFormat values used when the file is
@@ -36,6 +40,17 @@ export function classifyMimeType(mimeType: string): CaseFileKind | null {
 
 export function isSupportedMimeType(mimeType: string): boolean {
   return classifyMimeType(mimeType) !== null;
+}
+
+export function getMaxFileBytes(mimeType: string): number | null {
+  const kind = classifyMimeType(mimeType);
+  if (kind === CaseFileKind.IMAGE) {
+    return MAX_BEDROCK_IMAGE_BYTES;
+  }
+  if (kind === CaseFileKind.DOCUMENT) {
+    return MAX_BEDROCK_DOCUMENT_BYTES;
+  }
+  return null;
 }
 
 export const SUPPORTED_FILE_EXTENSIONS =
