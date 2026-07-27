@@ -14,8 +14,12 @@ import {
   getCategoryLabel,
   getSubcategoryLabel,
 } from "@/constants/case-categories";
+import { buildChatMarkdown, downloadTextFile, exportFileName } from "@/lib/chat-export";
 import type { CaseDto } from "@/types/case";
-import type { CaseChatContext } from "@/types/chat";
+import type { CaseChatContext, ChatCitation } from "@/types/chat";
+
+const SUMMARIZE_PROMPT =
+  "Please summarize our conversation so far — key facts, decisions, and any open action items.";
 
 type ChatLayoutProps = {
   caseRecord: CaseDto;
@@ -64,18 +68,40 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
     setPromptDraft(undefined);
   }, []);
 
-  // Memoized so streaming message updates (which re-render this component on
-  // every delta) don't keep replacing the panel content with a new element
-  // reference — only an actual case change should do that.
+  const citations = useMemo(() => {
+    const byUrl = new Map<string, ChatCitation>();
+    for (const message of messages) {
+      for (const citation of message.citations ?? []) {
+        if (!byUrl.has(citation.url ?? citation.id)) {
+          byUrl.set(citation.url ?? citation.id, citation);
+        }
+      }
+    }
+    return [...byUrl.values()];
+  }, [messages]);
+
   const casePanel = useMemo(
-    () => <CasePanel caseRecord={caseRecord} />,
-    [caseRecord],
+    () => <CasePanel caseRecord={caseRecord} citations={citations} />,
+    [caseRecord, citations],
   );
   useRightPanelContent(casePanel);
 
+  const handleSummarize = useCallback(() => {
+    void sendMessage(SUMMARIZE_PROMPT);
+  }, [sendMessage]);
+
+  const handleExport = useCallback(() => {
+    downloadTextFile(exportFileName(caseRecord), buildChatMarkdown(caseRecord, messages));
+  }, [caseRecord, messages]);
+
   return (
     <div className="flex h-[calc(100svh-3.5rem)] min-h-0 flex-col">
-      <ChatHeader caseRecord={caseRecord} quota={quota} />
+      <ChatHeader
+        caseRecord={caseRecord}
+        quota={quota}
+        onSummarize={isBusy || isLoadingHistory ? undefined : handleSummarize}
+        onExport={messages.length > 0 ? handleExport : undefined}
+      />
 
       {isLoadingHistory ? (
         <ConversationSkeleton />

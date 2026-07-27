@@ -98,10 +98,3 @@ export function buildCaseContextPrompt(
 
   return lines.join("\n");
 }
-
-/**
- * One-shot prompt for the on-demand "Summarize conversation" panel action.
- * Deliberately separate from FIRM_SYSTEM_PROMPT — this is a single utility
- * call, not a persona turn.
- */
-export const CASE_SUMMARY_SYSTEM_PROMPT = `Summarize the key points of the following client conversation with a legal AI assistant, from the client's perspective. Output 5-8 short Markdown bullet points covering: facts the client has shared, decisions or advice given, and any open action items or questions still outstanding. Be concrete and specific to this conversation — no generic filler, no preamble, no closing remarks. Output only the bullet list.`;

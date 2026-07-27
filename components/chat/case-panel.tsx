@@ -1,12 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
   Image as ImageIcon,
   Loader2,
-  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -14,22 +13,21 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ContactUsDialog } from "@/components/chat/contact-us-dialog";
-import { MarkdownContent } from "@/components/chat/markdown-content";
+import { MessageCitations } from "@/components/chat/message-citations";
 import { getPlanConfig } from "@/constants/plans";
 import { useAuth } from "@/hooks/use-auth";
-import { caseQueryKey } from "@/hooks/use-cases";
 import {
   deleteCaseFile,
   fetchCaseFiles,
   uploadCaseFile,
 } from "@/lib/case-files-client";
-import { formatRelativeTime } from "@/lib/format-date";
-import { generateCaseSummary } from "@/lib/summary-client";
 import { cn } from "@/lib/utils";
 import type { CaseDto } from "@/types/case";
+import type { ChatCitation } from "@/types/chat";
 
 type CasePanelProps = {
   caseRecord: CaseDto;
+  citations?: ChatCitation[];
   className?: string;
 };
 
@@ -39,11 +37,15 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function CasePanel({ caseRecord, className }: CasePanelProps) {
+export function CasePanel({
+  caseRecord,
+  citations = [],
+  className,
+}: CasePanelProps) {
   return (
     <div className={cn("flex h-full flex-col divide-y divide-border", className)}>
       <CaseFilesSection caseId={caseRecord.id} />
-      <CaseSummarySection caseRecord={caseRecord} />
+      <CaseSourcesSection citations={citations} />
       <div className="mt-auto p-4">
         <ContactUsDialog />
       </div>
@@ -170,57 +172,14 @@ function CaseFilesSection({ caseId }: { caseId: string }) {
   );
 }
 
-function CaseSummarySection({ caseRecord }: { caseRecord: CaseDto }) {
-  const queryClient = useQueryClient();
-  const [summary, setSummary] = useState(caseRecord.summary);
-  const [summaryUpdatedAt, setSummaryUpdatedAt] = useState(
-    caseRecord.summaryUpdatedAt,
-  );
-
-  const summarizeMutation = useMutation({
-    mutationFn: () => generateCaseSummary(caseRecord.id),
-    onSuccess: (result) => {
-      setSummary(result.summary);
-      setSummaryUpdatedAt(result.summaryUpdatedAt);
-      queryClient.invalidateQueries({ queryKey: caseQueryKey(caseRecord.id) });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
+function CaseSourcesSection({ citations }: { citations: ChatCitation[] }) {
+  if (citations.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="flex flex-col gap-3 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Summary</h2>
-        <Button
-          type="button"
-          size="icon-sm"
-          variant="outline"
-          aria-label={summary ? "Refresh summary" : "Summarize conversation"}
-          disabled={summarizeMutation.isPending}
-          onClick={() => summarizeMutation.mutate()}
-        >
-          {summarizeMutation.isPending ? (
-            <Loader2 className="size-3.5 animate-spin" aria-hidden />
-          ) : (
-            <Sparkles className="size-3.5" aria-hidden />
-          )}
-        </Button>
-      </div>
-
-      {summary ? (
-        <>
-          <MarkdownContent content={summary} className="text-xs" />
-          {summaryUpdatedAt ? (
-            <p className="text-[0.7rem] text-muted-foreground">
-              Updated {formatRelativeTime(summaryUpdatedAt)}
-            </p>
-          ) : null}
-        </>
-      ) : (
-        <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
-          Generate a summary of this conversation&apos;s key points.
-        </p>
-      )}
+    <section className="p-4">
+      <MessageCitations citations={citations} className="mt-0 border-t-0 pt-0" />
     </section>
   );
 }

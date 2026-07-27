@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { FileText, MoreHorizontal, Share2 } from "lucide-react";
+import { Download, FileText, MoreHorizontal, Share2, Sparkles } from "lucide-react";
 
 import { CasePanel } from "@/components/chat/case-panel";
 import { QuotaIndicator } from "@/components/chat/quota-indicator";
@@ -36,9 +36,16 @@ import type { ChatQuota } from "@/types/chat";
 type ChatHeaderProps = {
   caseRecord: CaseDto;
   quota?: ChatQuota | null;
+  onSummarize?: () => void;
+  onExport?: () => void;
 };
 
-export function ChatHeader({ caseRecord, quota }: ChatHeaderProps) {
+export function ChatHeader({
+  caseRecord,
+  quota,
+  onSummarize,
+  onExport,
+}: ChatHeaderProps) {
   const categoryLabel = caseRecord.intake
     ? getCategoryLabel(caseRecord.intake.category)
     : null;
@@ -140,7 +147,14 @@ export function ChatHeader({ caseRecord, quota }: ChatHeaderProps) {
               <MoreHorizontal className="size-4" aria-hidden />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem disabled>Export conversation</DropdownMenuItem>
+              <DropdownMenuItem disabled={!onSummarize} onClick={onSummarize}>
+                <Sparkles className="size-3.5" aria-hidden />
+                Summarize conversation
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!onExport} onClick={onExport}>
+                <Download className="size-3.5" aria-hidden />
+                Export conversation
+              </DropdownMenuItem>
               <DropdownMenuItem disabled>Case settings</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
