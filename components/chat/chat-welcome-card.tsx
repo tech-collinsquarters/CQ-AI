@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   getCategoryLabel,
   getSubcategoryLabel,
@@ -29,20 +28,25 @@ export function ChatWelcomeCard({
   const intake = caseRecord.intake;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8 md:py-12">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10 md:py-14">
       <Card className="border-border/70 shadow-sm">
-        <CardHeader className="items-center text-center">
+        <CardHeader className="items-center gap-3 text-center">
           <div
-            className="mb-2 flex size-14 items-center justify-center rounded-2xl bg-primary/10"
+            className="flex size-14 items-center justify-center rounded-2xl bg-primary/10"
             aria-hidden
           >
             <Sparkles className="size-7 text-primary" />
           </div>
-          <CardTitle className="text-xl">Your case has been created successfully</CardTitle>
-          <CardDescription className="text-base">
-            Ask questions about your legal matter. Preview responses are shown
-            until the AI module is connected.
-          </CardDescription>
+          <div className="space-y-2">
+            <CardTitle className="font-heading text-xl">
+              Your case workspace is ready
+            </CardTitle>
+            <CardDescription className="text-base leading-relaxed">
+              Ask questions about your legal matter. Counsel provides general
+              legal information to help you prepare — it is not a substitute for
+              advice from your solicitor.
+            </CardDescription>
+          </div>
         </CardHeader>
 
         {intake ? (
@@ -79,10 +83,9 @@ export function ChatWelcomeCard({
         ) : null}
       </Card>
 
-      <div className="space-y-3">
-        <Separator />
+      <div className="space-y-4">
         <p className="text-center text-sm font-medium text-muted-foreground">
-          Suggested prompts
+          Try asking
         </p>
         <SuggestedPrompts onSelect={onSelectPrompt} />
       </div>

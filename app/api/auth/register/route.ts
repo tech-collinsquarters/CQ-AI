@@ -73,9 +73,12 @@ export async function POST(request: Request) {
       );
     }
 
-    return jsonWithAuthCookies({ user, requiresLogin: false }, pendingCookies, {
-      status: 201,
-    });
+    // Session tokens stay in HttpOnly cookies only — never in the JSON body.
+    return jsonWithAuthCookies(
+      { user, requiresLogin: false },
+      pendingCookies,
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(

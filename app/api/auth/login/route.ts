@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     const { email, password } = parsed.data;
     const { user } = await loginWithClient(supabase, email, password);
 
+    // Session tokens stay in HttpOnly cookies only — never in the JSON body.
     return jsonWithAuthCookies({ user }, pendingCookies, {
       status: 200,
     });

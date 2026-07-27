@@ -16,7 +16,7 @@ export function MessageList({
   onRetry,
 }: MessageListProps) {
   return (
-    <div className="flex flex-col" role="log" aria-live="polite" aria-relevant="additions">
+    <div className="flex flex-col gap-1 py-2" role="log" aria-live="polite" aria-relevant="additions">
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} onRetry={onRetry} />
       ))}
