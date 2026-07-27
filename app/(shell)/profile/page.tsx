@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,58 +11,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  JURISDICTIONS,
-  OTHER_JURISDICTION,
-  isCustomJurisdiction,
-} from "@/constants/jurisdictions";
+  JurisdictionPicker,
+  draftFromJurisdiction,
+  jurisdictionDraftValue,
+  canSaveJurisdictionDraft,
+  useUpdateJurisdiction,
+  type JurisdictionDraft,
+} from "@/components/settings/jurisdiction-picker";
 import { useAuth } from "@/hooks/use-auth";
-import { updateProfile } from "@/lib/profile-client";
-
-const selectClassName =
-  "h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
-
-type JurisdictionDraft = { selected: string; customText: string };
-
-function draftFromUser(jurisdiction: string | null): JurisdictionDraft {
-  return isCustomJurisdiction(jurisdiction)
-    ? { selected: OTHER_JURISDICTION, customText: jurisdiction ?? "" }
-    : { selected: jurisdiction ?? "", customText: "" };
-}
 
 function JurisdictionCard() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   // null = "not yet edited" — mirror the saved value from `user`. Set once
   // the client edits a field, and cleared back to null after a save so it
   // re-derives from the freshly-refreshed user.
   const [draft, setDraft] = useState<JurisdictionDraft | null>(null);
 
-  const current = draft ?? draftFromUser(user?.jurisdiction ?? null);
-  const { selected, customText } = current;
-
-  const mutation = useMutation({
-    mutationFn: (jurisdiction: string | null) => updateProfile(jurisdiction),
-    onSuccess: async () => {
-      await refreshUser();
-      setDraft(null);
-      toast.success("Jurisdiction updated");
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const isOther = selected === OTHER_JURISDICTION;
-  const canSave = !isOther || customText.trim().length > 0;
-
-  const handleSave = () => {
-    if (!canSave) {
-      return;
-    }
-    const value = isOther ? customText.trim() : selected;
-    mutation.mutate(value || null);
-  };
+  const current = draft ?? draftFromJurisdiction(user?.jurisdiction);
+  const mutation = useUpdateJurisdiction(() => setDraft(null));
+  const canSave = canSaveJurisdictionDraft(current);
 
   return (
     <Card>
@@ -83,48 +50,18 @@ function JurisdictionCard() {
           </>
         ) : (
           <>
-            <div className="grid gap-1.5">
-              <Label htmlFor="jurisdiction-select">Jurisdiction</Label>
-              <select
-                id="jurisdiction-select"
-                className={selectClassName}
-                value={selected}
-                disabled={mutation.isPending}
-                onChange={(event) =>
-                  setDraft({ selected: event.target.value, customText })
-                }
-              >
-                <option value="">Not specified</option>
-                {JURISDICTIONS.map((jurisdiction) => (
-                  <option key={jurisdiction.value} value={jurisdiction.value}>
-                    {jurisdiction.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {isOther ? (
-              <div className="grid gap-1.5">
-                <Label htmlFor="jurisdiction-other">Specify jurisdiction</Label>
-                <Input
-                  id="jurisdiction-other"
-                  value={customText}
-                  disabled={mutation.isPending}
-                  placeholder="e.g. Ontario, Canada"
-                  onChange={(event) =>
-                    setDraft({ selected, customText: event.target.value })
-                  }
-                  maxLength={120}
-                />
-              </div>
-            ) : null}
-
+            <JurisdictionPicker
+              idPrefix="jurisdiction"
+              value={current}
+              onChange={setDraft}
+              disabled={mutation.isPending}
+            />
             <div>
               <Button
                 type="button"
                 size="sm"
                 disabled={!canSave || mutation.isPending}
-                onClick={handleSave}
+                onClick={() => mutation.mutate(jurisdictionDraftValue(current))}
               >
                 {mutation.isPending ? "Saving…" : "Save jurisdiction"}
               </Button>
