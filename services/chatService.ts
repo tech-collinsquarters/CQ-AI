@@ -299,11 +299,15 @@ export async function* streamAssistantReply(options: {
             } else {
               toolResult.content = [
                 {
-                  json: results.map((r) => ({
-                    title: r.title,
-                    url: r.url,
-                    content: r.content,
-                  })),
+                  // Bedrock's toolResult.content[].json field must be a JSON
+                  // object, not a bare array — wrap the results.
+                  json: {
+                    results: results.map((r) => ({
+                      title: r.title,
+                      url: r.url,
+                      content: r.content,
+                    })),
+                  },
                 },
               ];
               for (const r of results) {
