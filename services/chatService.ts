@@ -8,6 +8,7 @@ import {
   toConverseMessages,
 } from "@/lib/ai/bedrock";
 import { buildCaseContextPrompt, FIRM_SYSTEM_PROMPT } from "@/lib/ai/prompts";
+import { logError, logEvent } from "@/lib/logger";
 import { getPrisma } from "@/lib/prisma";
 import { getCaseFilesWithBytes } from "@/services/caseFileService";
 import type { AppUser } from "@/services/authService";
@@ -129,6 +130,7 @@ export async function* streamAssistantReply(options: {
   yield { type: "user_message", message: toDto(userMessage) };
 
   let assistantPersisted = false;
+  let bedrockStartedAt = 0;
 
   try {
     const [history, caseFiles] = await Promise.all([
@@ -180,10 +182,17 @@ export async function* streamAssistantReply(options: {
       }
     }
 
+    bedrockStartedAt = Date.now();
     const response = await converseStream({
       system: [
         { text: FIRM_SYSTEM_PROMPT },
-        { text: buildCaseContextPrompt(caseRecord, user.fullName) },
+        {
+          text: buildCaseContextPrompt(
+            caseRecord,
+            user.fullName,
+            user.jurisdiction,
+          ),
+        },
       ],
       messages,
       inferenceConfig: {
@@ -227,6 +236,14 @@ export async function* streamAssistantReply(options: {
     await recordTokenUsage(user.id, inputTokens, outputTokens);
     assistantPersisted = true;
 
+    logEvent("bedrock.chat", {
+      userId: user.id,
+      caseId: caseRecord.id,
+      latencyMs: Date.now() - bedrockStartedAt,
+      inputTokens,
+      outputTokens,
+    });
+
     yield {
       type: "done",
       message: toDto(assistantMessage),
@@ -247,7 +264,11 @@ export async function* streamAssistantReply(options: {
     if (signal?.aborted) {
       return;
     }
-    console.error("streamAssistantReply failed:", error);
+    logError("bedrock.chat", error, {
+      userId: user.id,
+      caseId: caseRecord.id,
+      latencyMs: bedrockStartedAt ? Date.now() - bedrockStartedAt : undefined,
+    });
     yield {
       type: "error",
       error:

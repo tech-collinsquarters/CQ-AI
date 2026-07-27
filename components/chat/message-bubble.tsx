@@ -1,17 +1,19 @@
 "use client";
 
-import { AlertCircle, Bot, User } from "lucide-react";
+import { AlertCircle, Bot, RotateCcw, User } from "lucide-react";
 
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";
 
 type MessageBubbleProps = {
   message: ChatMessage;
+  onRetry?: (message: ChatMessage) => void;
 };
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
   const isError = message.status === "error";
@@ -63,9 +65,23 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         )}
       >
         {isError ? (
-          <div className="mb-2 flex items-center gap-2 text-destructive">
-            <AlertCircle className="size-4 shrink-0" aria-hidden />
-            <span className="text-xs font-medium">Unable to respond</span>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="size-4 shrink-0" aria-hidden />
+              <span className="text-xs font-medium">Unable to respond</span>
+            </div>
+            {onRetry && message.retryContent ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 px-2 text-xs"
+                onClick={() => onRetry(message)}
+              >
+                <RotateCcw className="size-3" aria-hidden />
+                Retry
+              </Button>
+            ) : null}
           </div>
         ) : null}
 

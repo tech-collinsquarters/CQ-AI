@@ -14,8 +14,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { buildFirmLink } from "@/lib/firm-links";
 
-const CONTACT_URL = "https://collinsquarters.com";
+const CONTACT_URL = buildFirmLink("contact_dialog");
 
 export function ContactUsDialog() {
   return (

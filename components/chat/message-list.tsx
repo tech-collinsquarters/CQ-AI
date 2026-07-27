@@ -7,13 +7,18 @@ import type { ChatMessage } from "@/types/chat";
 type MessageListProps = {
   messages: ChatMessage[];
   isTyping?: boolean;
+  onRetry?: (message: ChatMessage) => void;
 };
 
-export function MessageList({ messages, isTyping = false }: MessageListProps) {
+export function MessageList({
+  messages,
+  isTyping = false,
+  onRetry,
+}: MessageListProps) {
   return (
     <div className="flex flex-col" role="log" aria-live="polite" aria-relevant="additions">
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+        <MessageBubble key={message.id} message={message} onRetry={onRetry} />
       ))}
       {isTyping ? <TypingIndicator /> : null}
     </div>

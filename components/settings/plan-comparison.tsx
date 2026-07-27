@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/card";
 import { PLAN_CONFIG, PLAN_ORDER } from "@/constants/plans";
 import { usePlanUsage } from "@/hooks/use-plan-usage";
+import { buildFirmLink } from "@/lib/firm-links";
 import { formatBytes } from "@/lib/utils";
 
-const CONTACT_URL = "https://collinsquarters.com";
+const CONTACT_URL = buildFirmLink("plan_comparison");
 
 export function PlanComparison() {
   const { data: usage } = usePlanUsage();

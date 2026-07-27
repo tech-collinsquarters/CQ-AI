@@ -107,6 +107,7 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
       const appendAssistantError = (message: string) => {
         const errorMessage = createLocalMessage("assistant", message, "error");
         errorMessage.errorMessage = message;
+        errorMessage.retryContent = trimmed;
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== streamingId),
           errorMessage,
@@ -173,6 +174,13 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
         );
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
+          if (assistantStarted) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === streamingId ? { ...m, status: "sent" } : m,
+              ),
+            );
+          }
           return;
         }
         appendAssistantError(
@@ -191,6 +199,21 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
     [caseId],
   );
 
+  const stopStreaming = useCallback(() => {
+    activeStreamRef.current?.abort();
+  }, []);
+
+  const retryMessage = useCallback(
+    (message: ChatMessage) => {
+      if (!message.retryContent) {
+        return;
+      }
+      setMessages((prev) => prev.filter((m) => m.id !== message.id));
+      void sendMessage(message.retryContent);
+    },
+    [sendMessage],
+  );
+
   return {
     messages,
     isTyping,
@@ -198,6 +221,8 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
     isLoadingHistory,
     quota,
     sendMessage,
+    stopStreaming,
+    retryMessage,
     hasMessages: messages.length > 0,
   };
 }

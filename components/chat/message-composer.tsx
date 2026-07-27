@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowUp, ImagePlus, Loader2 } from "lucide-react";
+import { ArrowUp, ImagePlus, Loader2, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,14 @@ import { CHAT_COMPOSER_PLACEHOLDER } from "@/constants/chat-prompts";
 import { useChatInput } from "@/hooks/use-chat-input";
 import { uploadCaseFile } from "@/lib/case-files-client";
 import { cn } from "@/lib/utils";
+import type { ChatQuota } from "@/types/chat";
 
 type MessageComposerProps = {
   caseId: string;
   onSend: (content: string) => void;
+  onStop?: () => void;
+  isGenerating?: boolean;
+  quota?: ChatQuota | null;
   disabled?: boolean;
   draft?: string;
   onDraftConsumed?: () => void;
@@ -29,6 +33,9 @@ type MessageComposerProps = {
 export function MessageComposer({
   caseId,
   onSend,
+  onStop,
+  isGenerating = false,
+  quota,
   disabled = false,
   draft,
   onDraftConsumed,
@@ -37,6 +44,9 @@ export function MessageComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  const quotaExhausted = Boolean(quota && quota.remaining <= 0);
+  const effectiveDisabled = disabled || quotaExhausted;
 
   const uploadImageMutation = useMutation({
     mutationFn: (file: File) => uploadCaseFile(caseId, file),
@@ -58,7 +68,7 @@ export function MessageComposer({
     send,
     handleKeyDown,
     characterLimit,
-  } = useChatInput({ onSend, disabled });
+  } = useChatInput({ onSend, disabled: effectiveDisabled });
 
   useEffect(() => {
     if (draft !== undefined && draft !== "") {
@@ -92,7 +102,7 @@ export function MessageComposer({
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={CHAT_COMPOSER_PLACEHOLDER}
-            disabled={disabled}
+            disabled={effectiveDisabled}
             rows={1}
             aria-label="Message input"
             className="max-h-[200px] min-h-10 flex-1 resize-none border-0 bg-transparent px-2 py-2 shadow-none focus-visible:ring-0"
@@ -137,29 +147,70 @@ export function MessageComposer({
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  size="icon"
-                  className="size-9 shrink-0 rounded-xl"
-                  disabled={!canSend}
-                  onClick={send}
-                  aria-label="Send message"
-                />
-              }
-            >
-              <ArrowUp className="size-4" aria-hidden />
-            </TooltipTrigger>
-            <TooltipContent>
-              {canSend ? "Send (Enter)" : "Enter a message to send"}
-            </TooltipContent>
-          </Tooltip>
+          {isGenerating ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="size-9 shrink-0 rounded-xl"
+                    onClick={onStop}
+                    aria-label="Stop generating"
+                  />
+                }
+              >
+                <Square className="size-3.5 fill-current" aria-hidden />
+              </TooltipTrigger>
+              <TooltipContent>Stop generating</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    size="icon"
+                    className="size-9 shrink-0 rounded-xl"
+                    disabled={!canSend}
+                    onClick={send}
+                    aria-label="Send message"
+                  />
+                }
+              >
+                <ArrowUp className="size-4" aria-hidden />
+              </TooltipTrigger>
+              <TooltipContent>
+                {canSend ? "Send (Enter)" : "Enter a message to send"}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
-          <span>Enter to send · Shift+Enter for new line</span>
+          <span>
+            {quota && quota.remaining <= 0
+              ? "Daily message limit reached — "
+              : quota && quota.remaining <= 3
+                ? `${quota.remaining} message${quota.remaining === 1 ? "" : "s"} left today — `
+                : ""}
+            {quota && quota.remaining <= 3 ? (
+              <a
+                href="/settings"
+                className={cn(
+                  "underline underline-offset-2",
+                  quota.remaining <= 0
+                    ? "font-medium text-destructive"
+                    : "text-amber-600 dark:text-amber-500",
+                )}
+              >
+                view plans
+              </a>
+            ) : (
+              "Enter to send · Shift+Enter for new line"
+            )}
+          </span>
           <span
             className={cn(isOverLimit && "font-medium text-destructive")}
             aria-live="polite"

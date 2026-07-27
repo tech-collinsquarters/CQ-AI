@@ -37,8 +37,16 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
     [caseRecord],
   );
 
-  const { messages, isTyping, isBusy, isLoadingHistory, quota, sendMessage } =
-    useChatMessages({ caseContext });
+  const {
+    messages,
+    isTyping,
+    isBusy,
+    isLoadingHistory,
+    quota,
+    sendMessage,
+    stopStreaming,
+    retryMessage,
+  } = useChatMessages({ caseContext });
   const { bottomRef } = useAutoScroll<HTMLDivElement>([
     messages.length,
     messages[messages.length - 1]?.content.length ?? 0,
@@ -76,6 +84,7 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
           messages={messages}
           isTyping={isTyping}
           onSelectPrompt={handleSelectPrompt}
+          onRetry={retryMessage}
           bottomRef={bottomRef}
         />
       )}
@@ -83,6 +92,9 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
       <MessageComposer
         caseId={caseRecord.id}
         onSend={sendMessage}
+        onStop={stopStreaming}
+        isGenerating={isTyping || isBusy}
+        quota={quota}
         disabled={isBusy || isLoadingHistory}
         draft={promptDraft}
         onDraftConsumed={clearPromptDraft}

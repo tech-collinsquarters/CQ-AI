@@ -2,6 +2,7 @@ import {
   getCategoryLabel,
   getSubcategoryLabel,
 } from "@/constants/case-categories";
+import { buildFirmLink } from "@/lib/firm-links";
 import type { CaseDto } from "@/types/case";
 
 const FIRM_NAME = process.env.FIRM_NAME || "Collins Quarters";
@@ -9,6 +10,14 @@ const FIRM_NAME = process.env.FIRM_NAME || "Collins Quarters";
 /** Public website — cross-sell/upsell and human contact link. */
 export const FIRM_WEBSITE_URL =
   process.env.FIRM_WEBSITE_URL || "https://collinsquarters.com";
+
+/**
+ * UTM-tagged version of the website link the assistant surfaces in chat, so
+ * collinsquarters.com analytics can attribute traffic to the AI portal.
+ * Fixed at module load (not per-request), so this stays safe to embed in the
+ * byte-stable FIRM_SYSTEM_PROMPT below.
+ */
+const FIRM_CONTACT_LINK = buildFirmLink("chat_assistant", FIRM_WEBSITE_URL);
 
 /**
  * Static firm-wide persona. Kept byte-stable so Bedrock prompt caching can
@@ -32,7 +41,7 @@ export const FIRM_SYSTEM_PROMPT = `You are Counsel, the AI legal assistant of ${
 - Stay in scope: legal matters and this client's case. Politely redirect anything else.
 
 # Firm contact & other services
-- The client can reach the firm directly at ${FIRM_WEBSITE_URL} — to book a consultation with a solicitor, ask about a matter outside this case, or get urgent human help.
+- The client can reach the firm directly at [${FIRM_NAME}](${FIRM_CONTACT_LINK}) — to book a consultation with a solicitor, ask about a matter outside this case, or get urgent human help. Always give this as that exact markdown link, verbatim, so it stays clickable and trackable — never paste the bare URL, rewrite it, or shorten it.
 - Mention this link naturally, not in every reply: when the urgency rule above fires, when the client asks something that needs a solicitor's sign-off or is outside this case's practice area (a natural cross-sell to another service the firm offers), or when a substantive answer closes and speaking to the firm is the sensible next step. Never repeat it if you already gave it earlier in the same conversation unless the client asks again.
 - The client may have attached reference files (images, PDFs, or documents) to this case as background material, shown to you as case context. Treat them as exhibits from the client, refer to them by name when relevant, and never assume content beyond what was actually shown to you.
 
@@ -49,6 +58,7 @@ export const FIRM_SYSTEM_PROMPT = `You are Counsel, the AI legal assistant of ${
 export function buildCaseContextPrompt(
   caseRecord: CaseDto,
   clientName: string,
+  jurisdiction: string | null,
 ): string {
   const lines: string[] = [
     "# Current case context",
@@ -56,6 +66,9 @@ export function buildCaseContextPrompt(
     `Case title: ${caseRecord.title}`,
     `Case status: ${caseRecord.status}`,
     `Case opened: ${caseRecord.createdAt.slice(0, 10)}`,
+    jurisdiction
+      ? `Client jurisdiction: ${jurisdiction} — assume this jurisdiction's law unless the client says otherwise.`
+      : "Client jurisdiction: not specified — if the answer depends on jurisdiction, ask the client one short clarifying question before assuming.",
   ];
 
   if (caseRecord.intake) {

@@ -28,6 +28,8 @@ export type ChatMessage = {
   createdAt: string;
   /** Populated when status is "error" */
   errorMessage?: string;
+  /** Client-only: the original content to resend, populated on failed sends */
+  retryContent?: string;
   citations?: ChatCitation[];
   attachments?: ChatAttachment[];
 };

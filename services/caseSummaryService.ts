@@ -2,6 +2,7 @@ import { ChatRole } from "@prisma/client";
 
 import { converse } from "@/lib/ai/bedrock";
 import { CASE_SUMMARY_SYSTEM_PROMPT } from "@/lib/ai/prompts";
+import { logError, logEvent } from "@/lib/logger";
 import { getPrisma } from "@/lib/prisma";
 import type { CaseDto } from "@/types/case";
 
@@ -42,6 +43,7 @@ export async function generateCaseSummary(
     .join("\n\n");
 
   let summary: string;
+  const bedrockStartedAt = Date.now();
   try {
     summary = (
       await converse({
@@ -50,8 +52,15 @@ export async function generateCaseSummary(
         inferenceConfig: { maxTokens: SUMMARY_MAX_TOKENS, temperature: 0.2 },
       })
     ).trim();
+    logEvent("bedrock.summary", {
+      caseId: caseRecord.id,
+      latencyMs: Date.now() - bedrockStartedAt,
+    });
   } catch (error) {
-    console.error("generateCaseSummary failed:", error);
+    logError("bedrock.summary", error, {
+      caseId: caseRecord.id,
+      latencyMs: Date.now() - bedrockStartedAt,
+    });
     return { error: "Could not generate a summary right now. Please try again." };
   }
 

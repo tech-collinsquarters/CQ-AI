@@ -12,6 +12,7 @@ export type AppUser = Pick<
   | "role"
   | "plan"
   | "authProvider"
+  | "jurisdiction"
   | "createdAt"
   | "updatedAt"
 >;
@@ -24,6 +25,7 @@ function toAppUser(user: User): AppUser {
     role: user.role,
     plan: user.plan,
     authProvider: user.authProvider,
+    jurisdiction: user.jurisdiction,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -179,6 +181,17 @@ export async function login(email: string, password: string) {
 export async function logout() {
   const supabase = await createClient();
   await logoutWithClient(supabase);
+}
+
+export async function updateUserJurisdiction(
+  userId: string,
+  jurisdiction: string | null,
+): Promise<AppUser> {
+  const user = await getPrisma().user.update({
+    where: { id: userId },
+    data: { jurisdiction },
+  });
+  return toAppUser(user);
 }
 
 /** Returns the current user only if they hold the ADMIN role. */

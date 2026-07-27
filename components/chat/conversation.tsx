@@ -13,6 +13,7 @@ type ConversationProps = {
   messages: ChatMessage[];
   isTyping: boolean;
   onSelectPrompt: (prompt: string) => void;
+  onRetry?: (message: ChatMessage) => void;
   bottomRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -21,6 +22,7 @@ export function Conversation({
   messages,
   isTyping,
   onSelectPrompt,
+  onRetry,
   bottomRef,
 }: ConversationProps) {
   const hasMessages = messages.length > 0;
@@ -29,7 +31,7 @@ export function Conversation({
     <ScrollArea className="min-h-0 flex-1">
       <div className="mx-auto w-full max-w-3xl">
         {hasMessages ? (
-          <MessageList messages={messages} isTyping={isTyping} />
+          <MessageList messages={messages} isTyping={isTyping} onRetry={onRetry} />
         ) : (
           <ChatWelcomeCard
             caseRecord={caseRecord}

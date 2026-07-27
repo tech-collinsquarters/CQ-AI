@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { FIRM_WEBSITE_URL } from "@/lib/ai/prompts";
+import { buildFirmLink } from "@/lib/firm-links";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/services/authService";
 import { getCaseForUser } from "@/services/caseService";
 import {
@@ -19,6 +21,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+/** Burst protection ahead of the daily plan quota — not a business limit. */
+const CHAT_RATE_LIMIT_MAX = 6;
+const CHAT_RATE_LIMIT_WINDOW_MS = 60_000;
+
 function toSseChunk(event: ChatStreamEvent): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`);
 }
@@ -29,6 +35,21 @@ export async function POST(request: Request, context: RouteContext) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = checkRateLimit(
+      `chat:${user.id}`,
+      CHAT_RATE_LIMIT_MAX,
+      CHAT_RATE_LIMIT_WINDOW_MS,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "You're sending messages too quickly — please wait a moment." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+        },
+      );
     }
 
     const body = await request.json().catch(() => null);
@@ -54,7 +75,7 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json(
         {
           error:
-            `You have reached today's message limit for your plan. Upgrade your plan, try again tomorrow, or visit ${FIRM_WEBSITE_URL} to speak with our team.`,
+            `You have reached today's message limit for your plan. Upgrade your plan, try again tomorrow, or [visit our website](${buildFirmLink("quota_exceeded", FIRM_WEBSITE_URL)}) to speak with our team.`,
           quota,
         },
         {

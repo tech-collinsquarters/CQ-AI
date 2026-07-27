@@ -9,11 +9,20 @@ expectations — while the firm's solicitors stay the source of actual legal adv
 ## Where we are today (implemented)
 
 ### Product flow
-1. **Auth** — Supabase email auth, synced to a Prisma `User` row (`role`, `plan`).
+1. **Auth** — Supabase email auth, synced to a Prisma `User` row (`role`, `plan`,
+   `jurisdiction`). The client can set/edit their jurisdiction from `/profile`
+   (curated dropdown + free-text "Other", `constants/jurisdictions.ts`) — it's
+   injected into every case's system prompt so the assistant applies the right
+   country/region's law by default (`lib/ai/prompts.ts`'s
+   `buildCaseContextPrompt`).
 2. **Case intake** — guided wizard (practice area → subcategory → description)
    creates a `Case` + `CaseIntake`.
 3. **AI chat workspace** — per-case conversation with a real AI assistant,
-   streamed token-by-token, with full history persisted per case.
+   streamed token-by-token, with full history persisted per case. Supports
+   stopping an in-flight generation and retrying a failed send
+   (`hooks/use-chat-messages.ts`'s `stopStreaming`/`retryMessage`), and shows
+   remaining daily quota inline in the composer as it runs low, not just in
+   the header.
 4. **Case files (Claude-Projects style)** — images/PDFs/docs uploaded once
    per case via the right-hand panel become context for *every* message on
    that case (not per-message attachments). Backed by Supabase Storage,
@@ -47,7 +56,11 @@ expectations — while the firm's solicitors stay the source of actual legal adv
 - **Adaptive thinking** enabled; no sampling params (removed on Opus 4.7+).
 - **Streaming**: SSE from `POST /api/cases/[id]/chat`
   (`user_message → delta* → done | error`), persisted on completion with
-  input/output token counts.
+  input/output token counts. Guarded by a per-user in-memory rate limit
+  (`lib/rate-limit.ts`, 6 requests/60s) ahead of the daily plan quota, and
+  every Bedrock call is timed and logged as structured JSON
+  (`lib/logger.ts`, `bedrock.chat` / `bedrock.summary` events) for latency
+  and error-rate observability.
 
 ### Data model additions
 - `ChatMessage` (per case, role USER/ASSISTANT, content, token counts).
@@ -84,6 +97,9 @@ expectations — while the firm's solicitors stay the source of actual legal adv
 | Chat summary | `services/caseSummaryService.ts`, `app/api/cases/[id]/summary/route.ts`, `lib/summary-client.ts` |
 | Plans/quota | `constants/plans.ts`, `DailyUsage` model |
 | Admin | `services/adminService.ts`, `app/api/admin/*`, `app/(shell)/admin/page.tsx`, `app/(shell)/admin/users/[userId]/page.tsx`, `components/admin/admin-dashboard.tsx`, `components/admin/customer-detail.tsx` |
+| Jurisdiction/profile | `constants/jurisdictions.ts`, `app/api/me/profile/route.ts`, `lib/profile-client.ts`, `app/(shell)/profile/page.tsx` |
+| Rate limiting | `lib/rate-limit.ts` |
+| Logging | `lib/logger.ts` |
 
 ### Environment
 Supabase, `DATABASE_URL`/`DIRECT_URL`, AWS credentials + `AWS_REGION`,
@@ -91,7 +107,9 @@ Supabase, `DATABASE_URL`/`DIRECT_URL`, AWS credentials + `AWS_REGION`,
 `FIRM_WEBSITE_URL` (default `https://collinsquarters.com`, surfaced by the
 assistant and the app for cross-sell/contact). `SUPABASE_SERVICE_ROLE_KEY`
 also backs the private `case-files` Storage bucket (auto-created on first
-upload by `lib/supabase/admin.ts`).
+upload by `lib/supabase/admin.ts`). Optional `NEXT_PUBLIC_CLARITY_PROJECT_ID`
+loads Microsoft Clarity session replay/heatmaps (`app/layout.tsx`) — unset by
+default, so local dev is a no-op.
 
 ### Operational notes
 - The first ADMIN must be promoted manually (SQL:
@@ -112,14 +130,17 @@ upload by `lib/supabase/admin.ts`).
 ### Near term
 - **Case-title generation** — after the first exchange, ask the model for a
   short title (replace the generic "Family Law Case #..." titles).
-- **Quota UI** — surface remaining daily messages in the composer; upsell link
-  when close to the limit (data already returned by both chat endpoints).
-- **Retry / stop controls** — stop generation button (abort the fetch), retry
-  failed turns.
+- ~~Quota UI~~ — **done**: remaining daily messages shown in the composer
+  (`components/chat/message-composer.tsx`), with an upsell link near the limit.
+- ~~Retry / stop controls~~ — **done**: stop generation (abort) and retry a
+  failed turn (`hooks/use-chat-messages.ts`).
 - **Message pagination** — history endpoint currently returns all messages;
   paginate past ~200 messages.
-- **Rate limiting / abuse** — per-IP limits on the chat route in addition to
-  plan quotas.
+- **Rate limiting / abuse** — **partially done**: per-user in-memory limit on
+  the chat route (`lib/rate-limit.ts`). Still missing: per-IP protection
+  (covers pre-auth/shared-account abuse) and a shared store if the app is
+  ever scaled to multiple instances (current limiter is single-instance,
+  in-memory).
 
 ### Product depth
 - **RAG over firm knowledge** — embed firm playbooks, precedent letters, FAQ
@@ -135,8 +156,11 @@ upload by `lib/supabase/admin.ts`).
   the case, book a consultation, escalate to a human solicitor (ticket/email).
 - **Solicitor workspace** — internal view of a case: AI-generated matter
   summary, chronology, and suggested next actions for the assigned lawyer.
-- **Multi-jurisdiction packs** — per-jurisdiction prompt addenda selected at
-  intake.
+- ~~Multi-jurisdiction packs~~ — **done, in a simpler form**: jurisdiction is
+  captured once on the client's profile (`User.jurisdiction`, `/profile`),
+  not per-case at intake, and injected into every case's system prompt.
+  Revisit if per-case jurisdiction override (e.g. a client with matters in
+  two countries) turns out to matter.
 
 ### Revenue
 - **Stripe integration** — checkout + customer portal; webhook maps Stripe
@@ -148,8 +172,15 @@ upload by `lib/supabase/admin.ts`).
   per-case pricing as an alternative.
 
 ### Hardening
-- Observability: structured logs around Bedrock calls (latency, tokens, errors),
-  alerting on error rate.
+- ~~Observability: structured logs around Bedrock calls~~ — **done**:
+  `lib/logger.ts` emits JSON `bedrock.chat`/`bedrock.summary` events
+  (latency, tokens, errors) from `chatService.ts`/`caseSummaryService.ts`.
+  Still missing: shipping these logs somewhere queryable and alerting on
+  error rate — today they're just structured stdout.
+- **Analytics**: Microsoft Clarity (session replay/heatmaps) wired via
+  `NEXT_PUBLIC_CLARITY_PROJECT_ID`. No custom product-event tracking yet
+  (case created, message sent, quota hit) — revisit if funnel-level metrics
+  are needed beyond what Clarity's replays show.
 - Evals: golden-set of legal questions per practice area; run on prompt/model
   changes to catch regressions.
 - Compliance: retention policy for chat data, data-processing agreement

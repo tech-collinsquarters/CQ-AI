@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useDashboardShell } from "@/hooks/use-dashboard-shell";
+import { buildFirmLink } from "@/lib/firm-links";
 import { cn } from "@/lib/utils";
 import type { DashboardMenuId } from "@/types/dashboard";
 
@@ -49,7 +50,7 @@ const ADMIN_ITEM: MenuItem = {
 const CONTACT_ITEM: MenuItem = {
   id: "contact",
   label: "Contact us",
-  href: "https://collinsquarters.com",
+  href: buildFirmLink("sidebar_contact"),
   icon: MessageCircleQuestion,
   external: true,
 };
