@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Refresh the session — must use getUser(), not getSession()
+  // Refresh the session - must use getUser(), not getSession()
   const {
     data: { user },
   } = await supabase.auth.getUser();

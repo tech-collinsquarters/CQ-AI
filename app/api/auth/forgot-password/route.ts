@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
 
     if (error) {
-      // Still return generic success — do not reveal whether the email exists.
+      // Still return generic success - do not reveal whether the email exists.
       console.error("POST /api/auth/forgot-password:", error.message);
     }
 

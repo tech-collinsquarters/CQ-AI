@@ -34,7 +34,7 @@ type TavilySearchResponse = {
 
 /**
  * Live web search via Tavily, for recency-sensitive questions the model
- * can't answer from training data alone. Throws on any failure — the
+ * can't answer from training data alone. Throws on any failure - the
  * caller (chatService's tool loop) decides how to degrade gracefully.
  */
 export async function searchWeb(query: string): Promise<WebSearchResult[]> {
@@ -65,7 +65,7 @@ export async function searchWeb(query: string): Promise<WebSearchResult[]> {
 
   for (const result of data.results ?? []) {
     const safeUrl = sanitizeMarkdownHref(result.url);
-    // Search results must be absolute http(s) links — sanitizeMarkdownHref
+    // Search results must be absolute http(s) links - sanitizeMarkdownHref
     // also allows "/" and "#" for in-app markdown links, which don't make
     // sense for an external search result.
     if (!safeUrl || !safeUrl.startsWith("http") || !result.title || !result.content) {

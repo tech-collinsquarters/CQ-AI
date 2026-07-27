@@ -22,7 +22,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 
 /**
- * Nudges the client to set their jurisdiction — Counsel can only ground
+ * Nudges the client to set their jurisdiction - Counsel can only ground
  * answers in the right country/region's law once this is known. Dismissible,
  * but reappears each fresh session (not persisted) until actually set.
  */
@@ -56,7 +56,7 @@ export function JurisdictionPromptDialog() {
           </div>
           <DialogDescription>
             Counsel only knows which country or region&apos;s law to apply
-            once you&apos;ve told it — set your jurisdiction now for
+            once you&apos;ve told it - set your jurisdiction now for
             accurate answers, or update it anytime from your profile.
           </DialogDescription>
         </DialogHeader>

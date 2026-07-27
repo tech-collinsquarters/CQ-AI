@@ -53,7 +53,7 @@ export function MessageComposer({
     onSuccess: (file) => {
       queryClient.invalidateQueries({ queryKey: ["case-files", caseId] });
       toast.success(
-        `${file.fileName} added to case files — the assistant can see it on this and future messages.`,
+        `${file.fileName} added to case files - the assistant can see it on this and future messages.`,
       );
     },
     onError: (error: Error) => toast.error(error.message),
@@ -143,7 +143,7 @@ export function MessageComposer({
               )}
             </TooltipTrigger>
             <TooltipContent>
-              Attach an image — added as case context, visible to the assistant on every message
+              Attach an image - added as case context, visible to the assistant on every message
             </TooltipContent>
           </Tooltip>
 
@@ -199,7 +199,7 @@ export function MessageComposer({
             </span>
           </div>
           <p className="text-center text-[11px] leading-relaxed text-muted-foreground/90">
-            Counsel provides general legal information only — not a substitute
+            Counsel provides general legal information only - not a substitute
             for advice from your solicitor.
           </p>
         </div>

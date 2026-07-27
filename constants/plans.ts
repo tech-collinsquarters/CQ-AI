@@ -10,7 +10,7 @@ export type PlanConfig = {
   /**
    * Max combined size of a case's knowledge files, in bytes. Every file is
    * injected into every assistant turn, so this is kept well under typical
-   * Bedrock request payload limits — not just a storage cap.
+   * Bedrock request payload limits - not just a storage cap.
    */
   maxCaseFilesTotalBytes: number;
 };
@@ -21,14 +21,14 @@ export const PLAN_CONFIG: Record<Plan, PlanConfig> = {
   FREE: {
     label: "Free",
     dailyMessageLimit: 2,
-    description: "Getting started — limited daily AI messages",
+    description: "Getting started - limited daily AI messages",
     maxCaseFiles: 3,
     maxCaseFilesTotalBytes: 8 * MB,
   },
   PRO: {
     label: "Pro",
     dailyMessageLimit: 20,
-    description: "For active matters — high daily AI message allowance",
+    description: "For active matters - high daily AI message allowance",
     // Bedrock Converse accepts at most five documents in one message.
     maxCaseFiles: 5,
     maxCaseFilesTotalBytes: 18 * MB,

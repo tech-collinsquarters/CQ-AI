@@ -56,7 +56,7 @@
   --brand-gold-foreground: #1a1508;
 
   /*
-   * Light theme — warm cream canvas so white cards / panels have clear edges.
+   * Light theme - warm cream canvas so white cards / panels have clear edges.
    * Hierarchy: canvas (#faf9f7) < sidebar (#f3efe8) < raised cards (#ffffff).
    */
   --background: #faf9f7;

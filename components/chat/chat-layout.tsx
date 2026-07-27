@@ -19,7 +19,7 @@ import type { CaseDto } from "@/types/case";
 import type { CaseChatContext, ChatCitation } from "@/types/chat";
 
 const SUMMARIZE_PROMPT =
-  "Please summarize our conversation so far — key facts, decisions, and any open action items.";
+  "Please summarize our conversation so far - key facts, decisions, and any open action items.";
 
 type ChatLayoutProps = {
   caseRecord: CaseDto;

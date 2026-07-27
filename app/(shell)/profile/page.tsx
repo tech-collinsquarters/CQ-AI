@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 function JurisdictionCard() {
   const { user } = useAuth();
-  // null = "not yet edited" — mirror the saved value from `user`. Set once
+  // null = "not yet edited" - mirror the saved value from `user`. Set once
   // the client edits a field, and cleared back to null after a save so it
   // re-derives from the freshly-refreshed user.
   const [draft, setDraft] = useState<JurisdictionDraft | null>(null);
@@ -105,11 +105,11 @@ export default function ProfilePage() {
             <>
               <div>
                 <p className="text-muted-foreground">Full name</p>
-                <p className="font-medium">{user?.fullName ?? "—"}</p>
+                <p className="font-medium">{user?.fullName ?? "-"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Email</p>
-                <p className="font-medium">{user?.email ?? "—"}</p>
+                <p className="font-medium">{user?.email ?? "-"}</p>
               </div>
               {user?.role === "ADMIN" ? (
                 <div>

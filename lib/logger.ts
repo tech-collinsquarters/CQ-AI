@@ -1,6 +1,6 @@
 import "server-only";
 
-/** Structured, single-line JSON logging — parseable by any log aggregator without a new dependency. */
+/** Structured, single-line JSON logging - parseable by any log aggregator without a new dependency. */
 export function logEvent(event: string, data: Record<string, unknown> = {}): void {
   console.log(
     JSON.stringify({ level: "info", event, timestamp: new Date().toISOString(), ...data }),

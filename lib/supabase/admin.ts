@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Server-only Supabase client authenticated with the service role key.
- * Bypasses RLS — never import this into client components, and only use it
+ * Bypasses RLS - never import this into client components, and only use it
  * for privileged operations (Storage reads/writes on behalf of an already
  * ownership-checked request).
  */

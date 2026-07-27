@@ -63,7 +63,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
-    // APIs must return JSON 401 — never an HTML login redirect.
+    // APIs must return JSON 401 - never an HTML login redirect.
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -74,7 +74,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Do not redirect away from reset-password — recovery sessions need that page.
+  // Do not redirect away from reset-password - recovery sessions need that page.
   if (
     user &&
     (pathname === "/auth/login" ||

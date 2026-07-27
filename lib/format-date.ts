@@ -15,7 +15,7 @@ const RELATIVE_TIME_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["minute", 60],
 ];
 
-/** "3 minutes ago", "just now", "2 days ago" — for last-active/updated timestamps. */
+/** "3 minutes ago", "just now", "2 days ago" - for last-active/updated timestamps. */
 export function formatRelativeTime(isoDate: string): string {
   const seconds = Math.round(
     (new Date(isoDate).getTime() - Date.now()) / 1000,
@@ -35,7 +35,7 @@ export function formatRelativeTime(isoDate: string): string {
   return rtf.format(Math.round(seconds / 60), "minute");
 }
 
-/** Short timestamp for chat messages — time today, date + time otherwise. */
+/** Short timestamp for chat messages - time today, date + time otherwise. */
 export function formatMessageTimestamp(isoDate: string): string {
   const date = new Date(isoDate);
   const now = new Date();

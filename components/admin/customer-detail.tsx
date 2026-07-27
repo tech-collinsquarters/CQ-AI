@@ -211,7 +211,7 @@ export function CustomerDetail({ userId }: { userId: string }) {
                       <td className="py-3 pr-4 text-muted-foreground">
                         {caseRow.category
                           ? getCategoryLabel(caseRow.category as CaseCategory)
-                          : "—"}
+                          : "-"}
                       </td>
                       <td className="py-3 pr-4">
                         <CaseStatusBadge status={caseRow.status as CaseStatus} />
@@ -233,7 +233,7 @@ export function CustomerDetail({ userId }: { userId: string }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="size-4" aria-hidden />
-            Usage — last 30 days
+            Usage - last 30 days
           </CardTitle>
         </CardHeader>
         <CardContent>

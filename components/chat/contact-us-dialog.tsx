@@ -46,7 +46,7 @@ export function ContactUsDialog() {
         <DialogHeader>
           <DialogTitle>Talk to the firm</DialogTitle>
           <DialogDescription>
-            This chat gives general legal information — for advice on your
+            This chat gives general legal information - for advice on your
             matter, a consultation, or anything outside this case, reach
             Collins Quarters directly.
           </DialogDescription>

@@ -30,7 +30,7 @@ export default function AuthLayout({
           className="h-8 w-auto"
         />
         <p className="text-[11px] text-muted-foreground">
-          Counsel — your legal workspace
+          Counsel - your legal workspace
         </p>
       </div>
 

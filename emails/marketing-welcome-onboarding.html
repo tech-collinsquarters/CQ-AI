@@ -1,0 +1,140 @@
+<!--
+  Marketing template: Welcome / onboarding (send after email is verified)
+  Provider-agnostic placeholders - swap to your ESP's syntax before sending:
+    {{first_name}}   client's first name
+    {{cta_url}}       link into the app (e.g. https://app.collinsquarters.com/cases/new)
+    {{unsubscribe_url}}
+  Suggested subject: Welcome to Counsel - let's set up your first case
+-->
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Welcome to Counsel</title>
+<style>
+  body, table, td { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  img { -ms-interpolation-mode: bicubic; border: 0; line-height: 100%; outline: none; text-decoration: none; }
+  body { margin: 0; padding: 0; width: 100% !important; background-color: #faf9f7; }
+  a { color: #cc9c54; }
+  .btn:hover { background-color: #b8863e !important; }
+  @media (prefers-color-scheme: dark) {
+    .bg-canvas { background-color: #1f1f1f !important; }
+    .bg-card { background-color: #353535 !important; }
+    .bg-feature { background-color: #2a2a2a !important; }
+    .text-fg { color: #f5f1e8 !important; }
+    .text-muted { color: #b8b3a8 !important; }
+    .border-card { border-color: rgba(255,255,255,0.1) !important; }
+  }
+  @media screen and (max-width: 600px) {
+    .container { width: 100% !important; }
+    .px-32 { padding-left: 20px !important; padding-right: 20px !important; }
+  }
+</style>
+</head>
+<body class="bg-canvas" style="margin:0; padding:0; background-color:#faf9f7;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    Your AI legal assistant is ready - here's how to get the most out of it.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-canvas" style="background-color:#faf9f7;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="container" style="width:600px; max-width:600px;">
+          <tr>
+            <td align="center" style="padding-bottom: 28px;">
+              <span style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; letter-spacing: 3px; color: #cc9c54; text-transform: uppercase;">Collins Quarters</span>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="bg-card border-card" style="background-color:#ffffff; border:1px solid rgba(26,21,8,0.1); border-radius: 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="px-32" style="padding: 40px 40px 8px 40px;">
+                    <h1 class="text-fg" style="margin:0 0 12px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 26px; line-height: 1.3; color:#1a1508; font-weight: 600;">
+                      Welcome, {{first_name}}.
+                    </h1>
+                    <p class="text-muted" style="margin:0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color:#6e6a62;">
+                      You're set up with Counsel, your AI legal assistant inside the Collins Quarters client portal. Every matter you open gets an assistant grounded in your case - here's how to get the most out of it.
+                    </p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td class="px-32" style="padding: 16px 40px 8px 40px;">
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-feature" style="background-color:#f7f4ee; border-radius: 12px; margin-bottom: 12px;">
+                      <tr>
+                        <td style="padding: 18px 20px;">
+                          <p class="text-fg" style="margin:0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color:#1a1508;">
+                            <span style="color:#cc9c54;">1.</span>&nbsp; Open your first case
+                          </p>
+                          <p class="text-muted" style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color:#6e6a62;">
+                            A short guided intake gets Counsel up to speed on your matter before you ask your first question.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-feature" style="background-color:#f7f4ee; border-radius: 12px; margin-bottom: 12px;">
+                      <tr>
+                        <td style="padding: 18px 20px;">
+                          <p class="text-fg" style="margin:0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color:#1a1508;">
+                            <span style="color:#cc9c54;">2.</span>&nbsp; Set your jurisdiction
+                          </p>
+                          <p class="text-muted" style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color:#6e6a62;">
+                            Add it once in your profile and Counsel applies the right country or region's law to every answer, automatically.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-feature" style="background-color:#f7f4ee; border-radius: 12px; margin-bottom: 4px;">
+                      <tr>
+                        <td style="padding: 18px 20px;">
+                          <p class="text-fg" style="margin:0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color:#1a1508;">
+                            <span style="color:#cc9c54;">3.</span>&nbsp; Upload your documents
+                          </p>
+                          <p class="text-muted" style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color:#6e6a62;">
+                            Add files once to a case and Counsel treats them as reference material for every message from then on.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                  </td>
+                </tr>
+
+                <tr>
+                  <td class="px-32" align="center" style="padding: 24px 40px 40px 40px;">
+                    <a href="{{cta_url}}" class="btn" target="_blank" style="display:inline-block; background-color:#cc9c54; color:#1a1508; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; text-decoration:none; padding: 14px 32px; border-radius: 10px;">
+                      Start your first case
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="padding: 28px 24px 0 24px;">
+              <p class="text-muted" style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; color:#948f84;">
+                Counsel gives general legal information to help you prepare - it isn't a substitute for advice from a Collins Quarters solicitor.
+              </p>
+              <p style="margin:16px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; color:#948f84;">
+                Collins Quarters · <a href="{{unsubscribe_url}}" style="color:#948f84; text-decoration:underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

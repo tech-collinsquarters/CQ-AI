@@ -40,7 +40,7 @@ export function buildChatMarkdown(
     }
 
     const speaker = message.role === "user" ? "Client" : "Counsel (AI)";
-    lines.push(`### ${speaker} — ${formatMessageTimestamp(message.createdAt)}`, "");
+    lines.push(`### ${speaker} - ${formatMessageTimestamp(message.createdAt)}`, "");
     lines.push(message.content, "");
 
     if (message.citations && message.citations.length > 0) {
@@ -59,7 +59,7 @@ export function buildChatMarkdown(
   lines.push(
     "---",
     "",
-    "_General legal information only — not a substitute for advice from your solicitor._",
+    "_General legal information only - not a substitute for advice from your solicitor._",
   );
 
   return lines.join("\n");

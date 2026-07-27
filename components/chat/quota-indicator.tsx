@@ -50,9 +50,9 @@ export function QuotaIndicator({ quota }: QuotaIndicatorProps) {
       </TooltipTrigger>
       <TooltipContent>
         {isExhausted
-          ? "Daily message limit reached — view plans"
+          ? "Daily message limit reached - view plans"
           : isNearLimit
-            ? "Getting close to today's limit — view plans"
+            ? "Getting close to today's limit - view plans"
             : `${quota.used} of ${quota.limit} messages used today`}
       </TooltipContent>
     </Tooltip>

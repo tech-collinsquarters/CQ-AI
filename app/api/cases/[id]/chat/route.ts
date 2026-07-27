@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-/** Burst protection ahead of the daily plan quota — not a business limit. */
+/** Burst protection ahead of the daily plan quota - not a business limit. */
 const CHAT_RATE_LIMIT_MAX = 6;
 const CHAT_RATE_LIMIT_WINDOW_MS = 60_000;
 
@@ -44,7 +44,7 @@ export async function POST(request: Request, context: RouteContext) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "You're sending messages too quickly — please wait a moment." },
+        { error: "You're sending messages too quickly - please wait a moment." },
         {
           status: 429,
           headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },

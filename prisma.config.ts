@@ -10,7 +10,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Prisma 7 CLI (migrate/db push) uses this URL — prefer direct/session, not transaction pooler.
+    // Prisma 7 CLI (migrate/db push) uses this URL - prefer direct/session, not transaction pooler.
     url: env("DIRECT_URL"),
   },
 });

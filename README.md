@@ -1,4 +1,4 @@
-# cq-ai — AI Legal Assistant
+# cq-ai - AI Legal Assistant
 
 Production-oriented AI Legal Assistant platform for a **single law firm** (not a multi-tenant SaaS).
 
@@ -64,12 +64,12 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `app/` — Next.js App Router (pages + APIs)
+### `app/` - Next.js App Router (pages + APIs)
 
 | Path | Purpose |
 |------|---------|
 | `app/layout.tsx` | Root layout: fonts, QueryProvider, AuthProvider, Toaster |
-| `app/page.tsx` | `/` — redirects to `/auth/login` |
+| `app/page.tsx` | `/` - redirects to `/auth/login` |
 | `app/globals.css` | Global styles + design tokens (Tailwind / shadcn) |
 | `app/favicon.ico` | Browser tab icon |
 
@@ -85,24 +85,24 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 | Path | Purpose |
 |------|---------|
-| `app/api/auth/register/route.ts` | `POST` — create Supabase user + Prisma User |
-| `app/api/auth/login/route.ts` | `POST` — sign in, set session cookies |
-| `app/api/auth/logout/route.ts` | `POST` — clear session |
-| `app/api/auth/me/route.ts` | `GET` — current Prisma user profile |
+| `app/api/auth/register/route.ts` | `POST` - create Supabase user + Prisma User |
+| `app/api/auth/login/route.ts` | `POST` - sign in, set session cookies |
+| `app/api/auth/logout/route.ts` | `POST` - clear session |
+| `app/api/auth/me/route.ts` | `GET` - current Prisma user profile |
 
 #### App shell (`(shell)` = route group; not part of the URL)
 
 | Path | Purpose |
 |------|---------|
 | `app/(shell)/layout.tsx` | Wraps pages in DashboardLayout (sidebar + navbar) |
-| `app/(shell)/dashboard/page.tsx` | `/dashboard` — empty welcome workspace |
-| `app/(shell)/profile/page.tsx` | `/profile` — user profile (from auth) |
-| `app/(shell)/settings/page.tsx` | `/settings` — placeholder |
-| `app/(shell)/cases/new/page.tsx` | `/cases/new` — New Case placeholder (no create yet) |
+| `app/(shell)/dashboard/page.tsx` | `/dashboard` - empty welcome workspace |
+| `app/(shell)/profile/page.tsx` | `/profile` - user profile (from auth) |
+| `app/(shell)/settings/page.tsx` | `/settings` - placeholder |
+| `app/(shell)/cases/new/page.tsx` | `/cases/new` - New Case placeholder (no create yet) |
 
 ---
 
-### `components/` — UI building blocks
+### `components/` - UI building blocks
 
 #### Dashboard shell
 
@@ -155,7 +155,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `providers/` — App-wide React context
+### `providers/` - App-wide React context
 
 | Path | Purpose |
 |------|---------|
@@ -173,7 +173,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `lib/` — Shared utilities / clients
+### `lib/` - Shared utilities / clients
 
 | Path | Purpose |
 |------|---------|
@@ -186,7 +186,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `services/` — Business logic (server)
+### `services/` - Business logic (server)
 
 | Path | Purpose |
 |------|---------|
@@ -194,7 +194,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `validators/` — Zod schemas
+### `validators/` - Zod schemas
 
 | Path | Purpose |
 |------|---------|
@@ -211,7 +211,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `prisma/` — Database
+### `prisma/` - Database
 
 | Path | Purpose |
 |------|---------|
@@ -221,7 +221,7 @@ Open [http://localhost:3000](http://localhost:3000) → redirects to `/auth/logi
 
 ---
 
-### `public/` — Static assets
+### `public/` - Static assets
 
 | Path | Purpose |
 |------|---------|

@@ -1,7 +1,7 @@
 import "server-only";
 
 /**
- * In-memory fixed-window rate limiter. Single-instance only — state resets on
+ * In-memory fixed-window rate limiter. Single-instance only - state resets on
  * redeploy/restart and isn't shared across horizontally-scaled instances.
  * Fine for the current deployment; revisit with a shared store (e.g. Upstash
  * Redis) if scaled horizontally.

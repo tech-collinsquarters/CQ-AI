@@ -43,7 +43,7 @@ export function ChatWelcomeCard({
             </CardTitle>
             <CardDescription className="text-base leading-relaxed">
               Ask questions about your legal matter. Counsel provides general
-              legal information to help you prepare — it is not a substitute for
+              legal information to help you prepare - it is not a substitute for
               advice from your solicitor.
             </CardDescription>
           </div>

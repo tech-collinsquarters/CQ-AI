@@ -118,7 +118,7 @@ function CaseFilesSection({ caseId }: { caseId: string }) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Added here, files become context for every message in this case —
+        Added here, files become context for every message in this case -
         not attached to a single message.
       </p>
 

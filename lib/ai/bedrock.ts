@@ -38,7 +38,7 @@ export function getBedrockClient(): BedrockRuntimeClient {
     const awsRegion = process.env.AWS_REGION;
     if (!awsRegion) {
       throw new Error(
-        "AWS_REGION is not set. Add AWS_REGION (and AWS credentials) to .env.local — see .env.example.",
+        "AWS_REGION is not set. Add AWS_REGION (and AWS credentials) to .env.local - see .env.example.",
       );
     }
     globalForBedrock.bedrock = new BedrockRuntimeClient({ region: awsRegion });
@@ -65,7 +65,7 @@ export const WEB_SEARCH_TOOL_NAME = "web_search";
 
 /**
  * Client-managed tool spec for live web search. Bedrock does not relay
- * Anthropic's hosted server-side web_search tool — this backend must execute
+ * Anthropic's hosted server-side web_search tool - this backend must execute
  * the search itself and hand results back as a tool result (see
  * chatService.streamAssistantReply's tool loop and lib/ai/web-search.ts).
  */
@@ -74,7 +74,7 @@ export function buildWebSearchTool(): Tool {
     toolSpec: {
       name: WEB_SEARCH_TOOL_NAME,
       description:
-        "Search the live web for current information. Use only when the answer depends on something that may have changed recently (current fees, deadlines, whether a law or policy changed) — not for settled legal concepts or general explanations.",
+        "Search the live web for current information. Use only when the answer depends on something that may have changed recently (current fees, deadlines, whether a law or policy changed) - not for settled legal concepts or general explanations.",
       inputSchema: {
         json: {
           type: "object",
@@ -105,8 +105,8 @@ export type ConverseStreamResult = {
 /**
  * Reads a ConverseStreamCommand response's event stream and reconstructs the
  * full assistant turn (text + any tool_use blocks). Yields each text delta
- * as it arrives — so the caller (chatService's generator) can forward it to
- * the client with no added latency — and returns the assembled `content`
+ * as it arrives - so the caller (chatService's generator) can forward it to
+ * the client with no added latency - and returns the assembled `content`
  * once the stream ends, which must be replayed back to Bedrock as this
  * turn's message when continuing a tool-use loop.
  */
@@ -191,7 +191,7 @@ export async function* consumeConverseStream(
 
 type ConverseOptions = Omit<ConverseCommandInput, "modelId">;
 
-/** One-shot (non-streaming) completion — used for short, single-turn tasks like summaries. */
+/** One-shot (non-streaming) completion - used for short, single-turn tasks like summaries. */
 export async function converse(options: ConverseOptions): Promise<string> {
   const response = await getBedrockClient().send(
     new ConverseCommand({ ...options, modelId: getBedrockModel() }),
@@ -241,11 +241,11 @@ function sanitizeDocumentName(fileName: string): string {
 
 /**
  * Builds the content blocks for a case's knowledge files (images/documents),
- * meant to be sent as a synthetic leading user turn — Bedrock's Converse
+ * meant to be sent as a synthetic leading user turn - Bedrock's Converse
  * `system` blocks are text-only, so multimodal case context has to live in
  * `messages` content instead.
  *
- * Does NOT include a trailing cachePoint — Bedrock requires cachePoint to be
+ * Does NOT include a trailing cachePoint - Bedrock requires cachePoint to be
  * the very last block in the whole message, so the caller must append it
  * after merging these blocks with the rest of the message's content (see
  * chatService.streamAssistantReply).

@@ -94,7 +94,7 @@ export function PlanUsageCard() {
           formatValue={(n) => n.toLocaleString()}
         />
         {/* File limits apply per case, so there's no single global "limit" to
-            show a ratio against — this is informational, not a progress bar. */}
+            show a ratio against - this is informational, not a progress bar. */}
         <div className="flex flex-col gap-1.5">
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <FileText className="size-3.5" aria-hidden />

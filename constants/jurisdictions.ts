@@ -14,7 +14,7 @@ export const JURISDICTIONS: { value: string; label: string }[] = [
   { value: "New Zealand", label: "New Zealand" },
   { value: "India", label: "India" },
   { value: "United Arab Emirates", label: "United Arab Emirates" },
-  { value: OTHER_JURISDICTION, label: "Other — specify" },
+  { value: OTHER_JURISDICTION, label: "Other - specify" },
 ];
 
 /** True when a stored jurisdiction value isn't one of the curated options (i.e. free text). */

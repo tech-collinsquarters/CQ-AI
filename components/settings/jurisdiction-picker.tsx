@@ -36,7 +36,7 @@ export function canSaveJurisdictionDraft(draft: JurisdictionDraft): boolean {
   return draft.selected !== OTHER_JURISDICTION || draft.customText.trim().length > 0;
 }
 
-/** Shared mutation for saving a jurisdiction — used by the profile page and the prompt dialog. */
+/** Shared mutation for saving a jurisdiction - used by the profile page and the prompt dialog. */
 export function useUpdateJurisdiction(onSuccess?: () => void) {
   const { refreshUser } = useAuth();
 
@@ -58,7 +58,7 @@ type JurisdictionPickerProps = {
   disabled?: boolean;
 };
 
-/** Pure, controlled select + conditional "Other" free-text input — no state or mutation of its own. */
+/** Pure, controlled select + conditional "Other" free-text input - no state or mutation of its own. */
 export function JurisdictionPicker({
   idPrefix,
   value,

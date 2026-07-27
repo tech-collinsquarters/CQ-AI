@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       password,
     );
 
-    // No session (e.g. confirm-email still on) — account created, must sign in
+    // No session (e.g. confirm-email still on) - account created, must sign in
     if (!session) {
       return NextResponse.json(
         {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Session tokens stay in HttpOnly cookies only — never in the JSON body.
+    // Session tokens stay in HttpOnly cookies only - never in the JSON body.
     return jsonWithAuthCookies(
       { user, requiresLogin: false },
       pendingCookies,

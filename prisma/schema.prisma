@@ -126,7 +126,7 @@ model ChatMessage {
 }
 
 /**
- * Case-level knowledge file (image or document) — uploaded once, used as
+ * Case-level knowledge file (image or document) - uploaded once, used as
  * context for every assistant turn on the case, not attached per-message.
  */
 model CaseFile {

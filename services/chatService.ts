@@ -34,7 +34,7 @@ export type { ChatMessageDto, ChatQuota, ChatStreamEvent };
 const HISTORY_MESSAGE_LIMIT = 40;
 const MAX_RESPONSE_TOKENS = 8192;
 
-/** Bounds the web-search tool loop — the last round always forces a final answer. */
+/** Bounds the web-search tool loop - the last round always forces a final answer. */
 const MAX_TOOL_ROUNDS = 3;
 const WEB_SEARCH_RATE_LIMIT_MAX = 20;
 const WEB_SEARCH_RATE_LIMIT_WINDOW_MS = 60 * 60_000;
@@ -159,7 +159,7 @@ export async function* streamAssistantReply(options: {
     history.reverse();
 
     // Case knowledge files are re-sent as a synthetic leading user turn on
-    // every request (not persisted to chat_messages) — Bedrock's Converse
+    // every request (not persisted to chat_messages) - Bedrock's Converse
     // `system` blocks are text-only, and a trailing cachePoint keeps repeat
     // turns from re-billing the file bytes as input tokens.
     const fileBlocks = buildCaseFileContentBlocks(
@@ -180,8 +180,8 @@ export async function* streamAssistantReply(options: {
       // Bedrock requires strict user/assistant alternation starting with a
       // user turn, so the file blocks are merged into the first user
       // message's content rather than inserted as a separate turn. The
-      // cachePoint must be the very last block in the message — Bedrock
-      // rejects any content block after it — so it's appended once the full
+      // cachePoint must be the very last block in the message - Bedrock
+      // rejects any content block after it - so it's appended once the full
       // content (files + the turn's own text) is assembled, not between the
       // file blocks and the rest of the message.
       const cachePoint = { cachePoint: { type: "default" as const } };
@@ -300,7 +300,7 @@ export async function* streamAssistantReply(options: {
               toolResult.content = [
                 {
                   // Bedrock's toolResult.content[].json field must be a JSON
-                  // object, not a bare array — wrap the results.
+                  // object, not a bare array - wrap the results.
                   json: {
                     results: results.map((r) => ({
                       title: r.title,
