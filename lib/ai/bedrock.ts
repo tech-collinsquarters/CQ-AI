@@ -10,6 +10,7 @@ import {
   type DocumentFormat,
   type ImageFormat,
   type Message,
+  type Tool,
 } from "@aws-sdk/client-bedrock-runtime";
 
 import {
@@ -58,6 +59,134 @@ export function converseStream(
     }),
     { abortSignal },
   );
+}
+
+export const WEB_SEARCH_TOOL_NAME = "web_search";
+
+/**
+ * Client-managed tool spec for live web search. Bedrock does not relay
+ * Anthropic's hosted server-side web_search tool — this backend must execute
+ * the search itself and hand results back as a tool result (see
+ * chatService.streamAssistantReply's tool loop and lib/ai/web-search.ts).
+ */
+export function buildWebSearchTool(): Tool {
+  return {
+    toolSpec: {
+      name: WEB_SEARCH_TOOL_NAME,
+      description:
+        "Search the live web for current information. Use only when the answer depends on something that may have changed recently (current fees, deadlines, whether a law or policy changed) — not for settled legal concepts or general explanations.",
+      inputSchema: {
+        json: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "The search query.",
+            },
+          },
+          required: ["query"],
+        },
+      },
+    },
+  };
+}
+
+type StreamBlockAccumulator =
+  | { kind: "text"; text: string }
+  | { kind: "toolUse"; toolUseId: string; name: string; inputJson: string };
+
+export type ConverseStreamResult = {
+  content: ContentBlock[];
+  stopReason: string;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+/**
+ * Reads a ConverseStreamCommand response's event stream and reconstructs the
+ * full assistant turn (text + any tool_use blocks). Yields each text delta
+ * as it arrives — so the caller (chatService's generator) can forward it to
+ * the client with no added latency — and returns the assembled `content`
+ * once the stream ends, which must be replayed back to Bedrock as this
+ * turn's message when continuing a tool-use loop.
+ */
+export async function* consumeConverseStream(
+  response: Awaited<ReturnType<typeof converseStream>>,
+): AsyncGenerator<string, ConverseStreamResult> {
+  const blocks = new Map<number, StreamBlockAccumulator>();
+  let stopReason = "end_turn";
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  if (response.stream) {
+    for await (const event of response.stream) {
+      const start = event.contentBlockStart;
+      if (start?.contentBlockIndex !== undefined && start.start?.toolUse) {
+        blocks.set(start.contentBlockIndex, {
+          kind: "toolUse",
+          toolUseId: start.start.toolUse.toolUseId ?? "",
+          name: start.start.toolUse.name ?? "",
+          inputJson: "",
+        });
+      }
+
+      const deltaEvent = event.contentBlockDelta;
+      const index = deltaEvent?.contentBlockIndex;
+      const delta = deltaEvent?.delta;
+      if (index !== undefined && delta) {
+        if (delta.text) {
+          const existing = blocks.get(index);
+          if (existing?.kind === "text") {
+            existing.text += delta.text;
+          } else {
+            blocks.set(index, { kind: "text", text: delta.text });
+          }
+          yield delta.text;
+        } else if (delta.toolUse?.input) {
+          const existing = blocks.get(index);
+          if (existing?.kind === "toolUse") {
+            existing.inputJson += delta.toolUse.input;
+          }
+        }
+      }
+
+      if (event.messageStop?.stopReason) {
+        stopReason = event.messageStop.stopReason;
+      }
+
+      if (event.metadata?.usage) {
+        inputTokens = event.metadata.usage.inputTokens ?? inputTokens;
+        outputTokens = event.metadata.usage.outputTokens ?? outputTokens;
+      }
+    }
+  }
+
+  const content: ContentBlock[] = [];
+  for (const index of [...blocks.keys()].sort((a, b) => a - b)) {
+    const block = blocks.get(index);
+    if (!block) {
+      continue;
+    }
+    if (block.kind === "text") {
+      content.push({ text: block.text });
+      continue;
+    }
+    let input: unknown = {};
+    try {
+      input = block.inputJson ? JSON.parse(block.inputJson) : {};
+    } catch {
+      input = {};
+    }
+    content.push({
+      toolUse: {
+        toolUseId: block.toolUseId,
+        name: block.name,
+        input: input as ContentBlock.ToolUseMember["toolUse"]["input"],
+      },
+    });
+  }
+
+  return { content, stopReason, inputTokens, outputTokens };
 }
 
 type ConverseOptions = Omit<ConverseCommandInput, "modelId">;

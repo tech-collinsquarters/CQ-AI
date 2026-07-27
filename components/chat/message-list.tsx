@@ -7,12 +7,14 @@ import type { ChatMessage } from "@/types/chat";
 type MessageListProps = {
   messages: ChatMessage[];
   isTyping?: boolean;
+  typingLabel?: string;
   onRetry?: (message: ChatMessage) => void;
 };
 
 export function MessageList({
   messages,
   isTyping = false,
+  typingLabel,
   onRetry,
 }: MessageListProps) {
   return (
@@ -20,7 +22,7 @@ export function MessageList({
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} onRetry={onRetry} />
       ))}
-      {isTyping ? <TypingIndicator /> : null}
+      {isTyping ? <TypingIndicator label={typingLabel} /> : null}
     </div>
   );
 }

@@ -43,6 +43,7 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
     isBusy,
     isLoadingHistory,
     quota,
+    searchingQuery,
     sendMessage,
     stopStreaming,
     retryMessage,
@@ -83,6 +84,11 @@ export function ChatLayout({ caseRecord }: ChatLayoutProps) {
           caseRecord={caseRecord}
           messages={messages}
           isTyping={isTyping}
+          typingLabel={
+            searchingQuery
+              ? `Searching the web for "${searchingQuery}"…`
+              : undefined
+          }
           onSelectPrompt={handleSelectPrompt}
           onRetry={retryMessage}
           bottomRef={bottomRef}

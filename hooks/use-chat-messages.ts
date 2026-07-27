@@ -17,6 +17,7 @@ function toUiMessage(dto: ChatMessageDto): ChatMessage {
     content: dto.content,
     status: "sent",
     createdAt: dto.createdAt,
+    citations: dto.citations,
   };
 }
 
@@ -50,6 +51,7 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
   const [isTyping, setIsTyping] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [quota, setQuota] = useState<ChatQuota | null>(null);
+  const [searchingQuery, setSearchingQuery] = useState<string | null>(null);
   const activeStreamRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -130,7 +132,11 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
                 ),
               );
               break;
+            case "tool_start":
+              setSearchingQuery(event.query);
+              break;
             case "delta":
+              setSearchingQuery(null);
               if (!assistantStarted) {
                 assistantStarted = true;
                 setIsTyping(false);
@@ -194,6 +200,7 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
         }
         setIsTyping(false);
         setIsBusy(false);
+        setSearchingQuery(null);
       }
     },
     [caseId],
@@ -220,6 +227,7 @@ export function useChatMessages({ caseContext }: UseChatMessagesOptions = {}) {
     isBusy,
     isLoadingHistory,
     quota,
+    searchingQuery,
     sendMessage,
     stopStreaming,
     retryMessage,

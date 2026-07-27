@@ -44,6 +44,8 @@ export type ChatMessageDto = {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  /** Web search sources cited in this reply, when the assistant used web search */
+  citations?: ChatCitation[];
 };
 
 /** Daily message allowance for the current user's plan */
@@ -57,6 +59,7 @@ export type ChatQuota = {
 export type ChatStreamEvent =
   | { type: "user_message"; message: ChatMessageDto }
   | { type: "delta"; text: string }
+  | { type: "tool_start"; tool: "web_search"; query: string }
   | { type: "done"; message: ChatMessageDto; quota: ChatQuota }
   | { type: "error"; error: string; quota?: ChatQuota }
 

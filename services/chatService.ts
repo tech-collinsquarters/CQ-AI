@@ -1,19 +1,28 @@
+import type {
+  ContentBlock,
+  ToolResultBlock,
+} from "@aws-sdk/client-bedrock-runtime";
 import type { ChatMessage as ChatMessageRecord } from "@prisma/client";
 import { ChatRole } from "@prisma/client";
 
 import { getPlanConfig } from "@/constants/plans";
 import {
   buildCaseFileContentBlocks,
+  buildWebSearchTool,
+  consumeConverseStream,
   converseStream,
   toConverseMessages,
 } from "@/lib/ai/bedrock";
 import { buildCaseContextPrompt, FIRM_SYSTEM_PROMPT } from "@/lib/ai/prompts";
+import { isWebSearchConfigured, searchWeb } from "@/lib/ai/web-search";
 import { logError, logEvent } from "@/lib/logger";
 import { getPrisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getCaseFilesWithBytes } from "@/services/caseFileService";
 import type { AppUser } from "@/services/authService";
 import type { CaseDto } from "@/types/case";
 import type {
+  ChatCitation,
   ChatMessageDto,
   ChatQuota,
   ChatStreamEvent,
@@ -25,12 +34,18 @@ export type { ChatMessageDto, ChatQuota, ChatStreamEvent };
 const HISTORY_MESSAGE_LIMIT = 40;
 const MAX_RESPONSE_TOKENS = 8192;
 
+/** Bounds the web-search tool loop — the last round always forces a final answer. */
+const MAX_TOOL_ROUNDS = 3;
+const WEB_SEARCH_RATE_LIMIT_MAX = 20;
+const WEB_SEARCH_RATE_LIMIT_WINDOW_MS = 60 * 60_000;
+
 function toDto(message: ChatMessageRecord): ChatMessageDto {
   return {
     id: message.id,
     role: message.role === ChatRole.USER ? "user" : "assistant",
     content: message.content,
     createdAt: message.createdAt.toISOString(),
+    citations: (message.citations as ChatCitation[] | null) ?? undefined,
   };
 }
 
@@ -182,42 +197,146 @@ export async function* streamAssistantReply(options: {
       }
     }
 
-    bedrockStartedAt = Date.now();
-    const response = await converseStream({
-      system: [
-        { text: FIRM_SYSTEM_PROMPT },
-        {
-          text: buildCaseContextPrompt(
-            caseRecord,
-            user.fullName,
-            user.jurisdiction,
-          ),
-        },
-      ],
-      messages,
-      inferenceConfig: {
-        maxTokens: MAX_RESPONSE_TOKENS,
-        temperature: 0.3,
+    const system = [
+      { text: FIRM_SYSTEM_PROMPT },
+      {
+        text: buildCaseContextPrompt(
+          caseRecord,
+          user.fullName,
+          user.jurisdiction,
+        ),
       },
-    }, signal);
+    ];
+    const webSearchTool = isWebSearchConfigured() ? buildWebSearchTool() : null;
 
     let assistantText = "";
-    let inputTokens = 0;
-    let outputTokens = 0;
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+    const citations: ChatCitation[] = [];
+    const citedUrls = new Set<string>();
 
-    if (response.stream) {
-      for await (const event of response.stream) {
-        const chunk = event.contentBlockDelta?.delta?.text;
-        if (chunk) {
-          assistantText += chunk;
-          yield { type: "delta", text: chunk };
-        }
+    bedrockStartedAt = Date.now();
 
-        if (event.metadata?.usage) {
-          inputTokens = event.metadata.usage.inputTokens ?? inputTokens;
-          outputTokens = event.metadata.usage.outputTokens ?? outputTokens;
-        }
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      // The final round drops the tool so the model must produce a real
+      // answer instead of requesting yet another search.
+      const isFinalRound = round === MAX_TOOL_ROUNDS - 1;
+
+      const response = await converseStream(
+        {
+          system,
+          messages,
+          toolConfig:
+            webSearchTool && !isFinalRound
+              ? { tools: [webSearchTool] }
+              : undefined,
+          inferenceConfig: {
+            maxTokens: MAX_RESPONSE_TOKENS,
+            temperature: 0.3,
+          },
+        },
+        signal,
+      );
+
+      const stream = consumeConverseStream(response);
+      let next = await stream.next();
+      while (!next.done) {
+        assistantText += next.value;
+        yield { type: "delta", text: next.value };
+        next = await stream.next();
       }
+      const result = next.value;
+      totalInputTokens += result.inputTokens;
+      totalOutputTokens += result.outputTokens;
+
+      const toolUseBlocks = result.content.filter((block) => block.toolUse);
+
+      if (result.stopReason !== "tool_use" || toolUseBlocks.length === 0) {
+        break;
+      }
+
+      messages.push({ role: "assistant", content: result.content });
+
+      const toolResultBlocks: ContentBlock[] = [];
+      for (const block of toolUseBlocks) {
+        const toolUse = block.toolUse;
+        const query =
+          toolUse?.input &&
+          typeof toolUse.input === "object" &&
+          "query" in toolUse.input
+            ? String((toolUse.input as { query?: unknown }).query ?? "")
+            : "";
+
+        yield { type: "tool_start", tool: "web_search", query };
+
+        const toolResult: ToolResultBlock = {
+          toolUseId: toolUse?.toolUseId ?? "",
+          content: [],
+          status: "success",
+        };
+
+        const rateLimit = checkRateLimit(
+          `web_search:${user.id}`,
+          WEB_SEARCH_RATE_LIMIT_MAX,
+          WEB_SEARCH_RATE_LIMIT_WINDOW_MS,
+        );
+
+        if (!rateLimit.allowed) {
+          toolResult.status = "error";
+          toolResult.content = [
+            {
+              text: "Web search is temporarily rate-limited for this account. Answer using what you already know, and tell the client you couldn't verify this against a live source right now.",
+            },
+          ];
+        } else {
+          try {
+            const results = await searchWeb(query);
+            if (results.length === 0) {
+              toolResult.status = "error";
+              toolResult.content = [
+                { text: "No web search results were found for this query." },
+              ];
+            } else {
+              toolResult.content = [
+                {
+                  json: results.map((r) => ({
+                    title: r.title,
+                    url: r.url,
+                    content: r.content,
+                  })),
+                },
+              ];
+              for (const r of results) {
+                if (!citedUrls.has(r.url)) {
+                  citedUrls.add(r.url);
+                  citations.push({
+                    id: r.url,
+                    title: r.title,
+                    url: r.url,
+                    excerpt: r.content.slice(0, 240),
+                  });
+                }
+              }
+            }
+          } catch (searchError) {
+            logError("web_search", searchError, {
+              userId: user.id,
+              caseId: caseRecord.id,
+              query,
+            });
+            toolResult.status = "error";
+            toolResult.content = [
+              {
+                text: "Web search failed. Answer using what you already know, and tell the client you couldn't verify this against a live source right now.",
+              },
+            ];
+          }
+        }
+
+        toolResultBlocks.push({ toolResult });
+      }
+
+      messages.push({ role: "user", content: toolResultBlocks });
     }
 
     if (!assistantText.trim()) {
@@ -229,19 +348,21 @@ export async function* streamAssistantReply(options: {
         caseId: caseRecord.id,
         role: ChatRole.ASSISTANT,
         content: assistantText,
-        inputTokens,
-        outputTokens,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        citations: citations.length > 0 ? citations : undefined,
       },
     });
-    await recordTokenUsage(user.id, inputTokens, outputTokens);
+    await recordTokenUsage(user.id, totalInputTokens, totalOutputTokens);
     assistantPersisted = true;
 
     logEvent("bedrock.chat", {
       userId: user.id,
       caseId: caseRecord.id,
       latencyMs: Date.now() - bedrockStartedAt,
-      inputTokens,
-      outputTokens,
+      inputTokens: totalInputTokens,
+      outputTokens: totalOutputTokens,
+      searchesUsed: citedUrls.size,
     });
 
     yield {
