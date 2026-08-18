@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import {
+  AuthDivider,
+  GoogleAuthButton,
+  OAuthErrorAlert,
+} from "@/components/auth/google-auth-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +56,8 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-4 pt-4">
+          <OAuthErrorAlert />
+
           {form.formState.errors.root ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to sign in</AlertTitle>
@@ -59,6 +66,9 @@ export default function LoginPage() {
               </AlertDescription>
             </Alert>
           ) : null}
+
+          <GoogleAuthButton disabled={loading} />
+          <AuthDivider />
 
           <Form {...form}>
             <form

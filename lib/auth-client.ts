@@ -1,4 +1,5 @@
 import type { AppUser } from "@/types/auth";
+import { createClient } from "@/lib/supabase/client";
 import type {
   ForgotPasswordInput,
   LoginInput,
@@ -29,6 +30,19 @@ export async function fetchCurrentUser(): Promise<AppUser | null> {
   }
 
   return data.user as AppUser;
+}
+
+export async function signInWithGoogle() {
+  const supabase = createClient();
+  const redirectTo = `${window.location.origin}/auth/callback`;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo },
+  });
+
+  if (error) {
+    throw new Error(error.message || "Unable to start Google sign-in");
+  }
 }
 
 export async function loginRequest(input: LoginInput) {

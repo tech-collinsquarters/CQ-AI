@@ -60,3 +60,10 @@ export function jsonWithAuthCookies(
   const response = NextResponse.json(body, { status: init?.status ?? 200 });
   return applyCookies(response, pendingCookies);
 }
+
+export function redirectWithAuthCookies(
+  url: string | URL,
+  pendingCookies: PendingCookie[],
+) {
+  return applyCookies(NextResponse.redirect(url), pendingCookies);
+}

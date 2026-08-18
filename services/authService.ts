@@ -44,6 +44,60 @@ function touchLastActive(userId: string, lastActiveAt: Date | null): void {
     .catch((error) => console.error("touchLastActive failed:", error));
 }
 
+function metadataString(
+  metadata: AuthUser["user_metadata"],
+  key: string,
+): string | null {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function resolveFullName(authUser: AuthUser, override?: string): string {
+  const fromOverride = override?.trim();
+  if (fromOverride) {
+    return fromOverride;
+  }
+
+  return (
+    metadataString(authUser.user_metadata, "full_name") ||
+    metadataString(authUser.user_metadata, "fullName") ||
+    metadataString(authUser.user_metadata, "name") ||
+    authUser.email?.split("@")[0] ||
+    "User"
+  );
+}
+
+function resolveAuthProvider(
+  authUser: AuthUser,
+  override?: AuthProvider,
+): AuthProvider {
+  if (override) {
+    return override;
+  }
+
+  const identityProviders = new Set(
+    (authUser.identities ?? []).map((identity) => identity.provider),
+  );
+  if (identityProviders.has("google")) {
+    return AuthProvider.GOOGLE;
+  }
+
+  const appProvider = authUser.app_metadata?.provider;
+  if (appProvider === "google") {
+    return AuthProvider.GOOGLE;
+  }
+
+  const appProviders = authUser.app_metadata?.providers;
+  if (
+    Array.isArray(appProviders) &&
+    appProviders.some((provider) => provider === "google")
+  ) {
+    return AuthProvider.GOOGLE;
+  }
+
+  return AuthProvider.EMAIL;
+}
+
 /**
  * Ensure a Prisma User exists for a Supabase auth user.
  * Fixes the split-brain where middleware sees Auth but /api/auth/me returns 401.
@@ -57,18 +111,8 @@ export async function syncPrismaUser(
     throw new Error("Auth user is missing an email address");
   }
 
-  const fullName =
-    overrides?.fullName?.trim() ||
-    (typeof authUser.user_metadata?.full_name === "string"
-      ? authUser.user_metadata.full_name
-      : null) ||
-    (typeof authUser.user_metadata?.fullName === "string"
-      ? authUser.user_metadata.fullName
-      : null) ||
-    email.split("@")[0] ||
-    "User";
-
-  const authProvider = overrides?.authProvider ?? AuthProvider.EMAIL;
+  const fullName = resolveFullName(authUser, overrides?.fullName);
+  const authProvider = resolveAuthProvider(authUser, overrides?.authProvider);
 
   const user = await getPrisma().user.upsert({
     where: { id: authUser.id },
